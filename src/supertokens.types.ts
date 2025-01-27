@@ -16,7 +16,7 @@ import UserRoles from "supertokens-node/recipe/userroles"
 import supertokens from "supertokens-node"
 
 interface Recipes {
-  EmailPassword?: () => ReturnType<typeof EmailPassword.init>
+  EmailPassword?: Parameters<typeof EmailPassword.init>[0]
   ThirdParty?: Parameters<typeof ThirdParty.init>[0]
   Passwordless?: Parameters<typeof Passwordless.init>[0]
   Session?: Parameters<typeof Session.init>[0]

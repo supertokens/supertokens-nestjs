@@ -17,10 +17,10 @@ import { SuperTokensSession } from "./supertokens.types"
 
 @Injectable()
 export class SuperTokensAuthGuard implements CanActivate {
-  constructor(
-    @Inject(Reflector)
-    private reflector: Reflector,
-  ) {}
+  private reflector: Reflector
+  constructor() {
+    this.reflector = new Reflector()
+  }
 
   public async canActivate(context: ExecutionContext): Promise<boolean> {
     // TODO: Exclude supertokens routes if the guard is applied globally
@@ -33,6 +33,8 @@ export class SuperTokensAuthGuard implements CanActivate {
     const req = ctx.getRequest()
     const resp = ctx.getResponse()
 
+    // TODO: Email verification options
+    const parsedOptions = {}
     const session = await getSession(req, resp, options)
     req.session = session
 
