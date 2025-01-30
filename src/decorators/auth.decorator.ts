@@ -1,6 +1,5 @@
 import { Reflector } from "@nestjs/core"
 
-// TODO: Wrap with a utility function so that at least on property is required
 type AuthOptions = {
   roles?: string[]
   permissions?: string[]
@@ -8,4 +7,4 @@ type AuthOptions = {
   requireMFA?: boolean
 }
 
-export const AuthDecorator = Reflector.createDecorator<AuthOptions>()
+export const Auth = Reflector.createDecorator<AuthOptions>()

@@ -1,18 +1,10 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  Inject,
-  Injectable,
-} from "@nestjs/common"
+import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common"
 import { Reflector } from "@nestjs/core"
 import UserRoles from "supertokens-node/recipe/userroles"
-import {
-  getSession,
-  VerifySessionOptions,
-} from "supertokens-node/recipe/session"
+import { getSession } from "supertokens-node/recipe/session"
 import { Error as STError } from "supertokens-node/recipe/session"
 
-import { Permissions, PublicRoute, Roles, SessionOptions } from "./decorators"
+import { VerifySession, PublicAccess, Auth } from "./decorators"
 import { SuperTokensSession } from "./supertokens.types"
 
 @Injectable()
@@ -24,28 +16,32 @@ export class SuperTokensAuthGuard implements CanActivate {
 
   public async canActivate(context: ExecutionContext): Promise<boolean> {
     // TODO: Exclude supertokens routes if the guard is applied globally
-    const isPublic = this.reflector.get(PublicRoute, context.getHandler())
+    const isPublic = this.reflector.get(PublicAccess, context.getHandler())
 
     if (isPublic) return true
 
-    const options = this.reflector.get(SessionOptions, context.getHandler())
+    const verifySessionOptions = this.reflector.get(
+      VerifySession,
+      context.getHandler(),
+    )
+    const authOptions = this.reflector.get(Auth, context.getHandler())
     const ctx = context.switchToHttp()
     const req = ctx.getRequest()
     const resp = ctx.getResponse()
 
     // TODO: Email verification options
     const parsedOptions = {}
-    const session = await getSession(req, resp, options)
+    const session = await getSession(req, resp, verifySessionOptions)
     req.session = session
 
-    const roles = this.reflector.get(Roles, context.getHandler())
-    if (roles) {
-      await this.validateRoles(session, roles)
+    const requiredRoles = authOptions?.roles
+    if (requiredRoles) {
+      await this.validateRoles(session, requiredRoles)
     }
 
-    const permissions = this.reflector.get(Permissions, context.getHandler())
-    if (permissions) {
-      await this.validatePermissions(session, permissions)
+    const requiredPermissions = authOptions?.permissions
+    if (requiredPermissions) {
+      await this.validatePermissions(session, requiredPermissions)
     }
 
     return true
@@ -57,14 +53,33 @@ export class SuperTokensAuthGuard implements CanActivate {
   ) {
     const roles = await session!.getClaimValue(UserRoles.UserRoleClaim)
     if (!roles) {
-      this.throwRolesError()
+      // TODO: Validate if the error handling can be customized from the `errorHandlers` config
+      throw new STError({
+        type: STError.INVALID_CLAIMS,
+        message: "User does not have the required roles",
+        payload: [
+          {
+            id: UserRoles.PermissionClaim.key,
+            reason: "Required roles not found",
+          },
+        ],
+      })
     }
 
     const hasRoles = requiredRoles.every((requiredScope) =>
       roles.includes(requiredScope),
     )
     if (!hasRoles) {
-      this.throwRolesError()
+      throw new STError({
+        type: STError.INVALID_CLAIMS,
+        message: "User does not have the required roles",
+        payload: [
+          {
+            id: UserRoles.PermissionClaim.key,
+            reason: "Required roles not found",
+          },
+        ],
+      })
     }
   }
 
@@ -74,40 +89,32 @@ export class SuperTokensAuthGuard implements CanActivate {
   ) {
     const permissions = await session!.getClaimValue(UserRoles.PermissionClaim)
     if (!permissions) {
-      this.throwPermissionsError()
+      throw new STError({
+        type: STError.INVALID_CLAIMS,
+        message: "User does not have the required permissions",
+        payload: [
+          {
+            id: UserRoles.PermissionClaim.key,
+            reason: "Required permissions not found",
+          },
+        ],
+      })
     }
 
     const hasPermissions = requiredPermissions.every((requiredScope) =>
       permissions.includes(requiredScope),
     )
     if (!hasPermissions) {
-      this.throwPermissionsError()
+      throw new STError({
+        type: STError.INVALID_CLAIMS,
+        message: "User does not have the required permissions",
+        payload: [
+          {
+            id: UserRoles.PermissionClaim.key,
+            reason: "Required permissions not found",
+          },
+        ],
+      })
     }
-  }
-
-  private throwRolesError() {
-    // TODO: Allow users to customize this error
-    throw new STError({
-      type: "INVALID_CLAIMS",
-      message: "User does not have the required roles",
-      payload: [
-        {
-          id: UserRoles.UserRoleClaim.key,
-        },
-      ],
-    })
-  }
-
-  private throwPermissionsError() {
-    // TODO: Allow users to customize this error
-    throw new STError({
-      type: "INVALID_CLAIMS",
-      message: "User does not have the required permissions",
-      payload: [
-        {
-          id: UserRoles.UserRoleClaim.key,
-        },
-      ],
-    })
   }
 }
