@@ -29,10 +29,13 @@ export class SuperTokensModule {
 
   configure(consumer: MiddlewareConsumer) {
     if (this.options.framework !== "express") return
+    console.log("Express detected")
     consumer.apply(SuperTokensExpressAuthMiddleware).forRoutes("*")
   }
 
-  static forRoot(options: SuperTokensModuleOptions): DynamicModule {
+  static forRoot(
+    options: SuperTokensModuleOptions & { global?: boolean },
+  ): DynamicModule {
     const { global = true } = options
     return {
       module: SuperTokensModule,
