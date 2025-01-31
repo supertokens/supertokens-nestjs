@@ -20,6 +20,10 @@ That being said, the library **should not** include any additional functionality
   - Enforce auth requirements: `@Roles`, `@Permissions`, `@MFARequired`, `@EmailVerified`, `@SessionOptions`
   - Access session data: `@Session`, `@SessionProperty('propName')`
 
+## TODO
+
+- [ ] Explain how VerifySession and Auth decorators overlap
+
 ## Open Questions
 
 - Is the current SDK init approach correct? The config differs in how you define the recipe list. You pass only the recipe config without calling the `init` (in order to ensure that SDK gets initialized before the recipes).

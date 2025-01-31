@@ -1,38 +1,30 @@
-import { Inject, Injectable, OnModuleInit } from "@nestjs/common"
+import {
+  Inject,
+  Injectable,
+  OnApplicationBootstrap,
+  OnModuleInit,
+} from "@nestjs/common"
 import supertokens from "supertokens-node"
 import { SUPERTOKENS_MODULE_OPTIONS } from "./supertokens.constants"
 import { SuperTokensModuleOptions } from "./supertokens.types"
-
-import EmailPassword from "supertokens-node/recipe/emailpassword"
-import ThirdParty from "supertokens-node/recipe/thirdparty"
-import Passwordless from "supertokens-node/recipe/passwordless"
-import Session from "supertokens-node/recipe/session"
-import Dashboard from "supertokens-node/recipe/dashboard"
-import UserRoles from "supertokens-node/recipe/userroles"
-
-const RecipesMap = {
-  EmailPassword,
-  ThirdParty,
-  Passwordless,
-  Session,
-  Dashboard,
-  UserRoles,
-} as const
+import { plugin } from "supertokens-node/framework/fastify"
 
 @Injectable()
-export class SupertokensService {
+export class SuperTokensService implements OnModuleInit {
   constructor(
     @Inject(SUPERTOKENS_MODULE_OPTIONS)
     private options: SuperTokensModuleOptions,
   ) {
-    const { recipes, ...stInitOptions } = options
-    const recipeList = Object.keys(recipes).map((recipeName) => {
-      const Recipe = RecipesMap[recipeName]
-      if (!Recipe) {
-        throw new Error(`Unknown recipe: ${recipeName}`)
-      }
-      return Recipe.init(recipes[recipeName])
-    })
-    supertokens.init({ ...stInitOptions, recipeList })
+    supertokens.init(this.options)
+  }
+
+  async onModuleInit() {
+    if (this.options.framework === "fastify") {
+      if (!this.options.fastifyAdapter)
+        throw new Error(
+          "fastifyAdapter is required when using fastify as a framework",
+        )
+      await this.options.fastifyAdapter.register(plugin)
+    }
   }
 }
