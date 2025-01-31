@@ -10,11 +10,24 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@nestjs/core": "^11.0.4",
-    "express": "^4.21.2",
+    "express": "^4.21.2"
+  },
+  "peerDependencies": {
+    "@nestjs/core": "^11.0.1",
+    "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/platform-fastify": "^11.0.6",
     "supertokens-node": "^21.1.0"
   },
+  "peerDependenciesMeta": {
+    "@nestjs/platform-express": {
+      "optional": true
+    },
+    "@nestjs/platform-fastify": {
+      "optional": true
+    }
+  },
   "devDependencies": {
+    "@nestjs/testing": "^11.0.7",
     "rimraf": "^6.0.1",
     "typescript": "^5.7.3"
   }

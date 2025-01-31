@@ -6,30 +6,12 @@ import {
 } from "@nestjs/common"
 
 import { getSession } from "supertokens-node/recipe/session"
-import EmailPassword from "supertokens-node/recipe/emailpassword"
-import ThirdParty from "supertokens-node/recipe/thirdparty"
-import Passwordless from "supertokens-node/recipe/passwordless"
-import Session from "supertokens-node/recipe/session"
-import Dashboard from "supertokens-node/recipe/dashboard"
-import UserRoles from "supertokens-node/recipe/userroles"
+import { FastifyAdapter } from "@nestjs/platform-fastify"
+import { TypeInput } from "supertokens-node/types"
 
-import supertokens from "supertokens-node"
-
-interface Recipes {
-  EmailPassword?: Parameters<typeof EmailPassword.init>[0]
-  ThirdParty?: Parameters<typeof ThirdParty.init>[0]
-  Passwordless?: Parameters<typeof Passwordless.init>[0]
-  Session?: Parameters<typeof Session.init>[0]
-  Dashboard?: Parameters<typeof Dashboard.init>[0]
-  UserRoles?: Parameters<typeof UserRoles.init>[0]
-}
-
-type SuperTokensInitParams = Omit<
-  Parameters<typeof supertokens.init>[0],
-  "framework" | "recipeList"
-> & { recipes: Recipes }
-
-export type SuperTokensModuleOptions = SuperTokensInitParams & {
+export type SuperTokensModuleOptions = TypeInput & {
+  framework: "express" | "fastify"
+  fastifyAdapter?: FastifyAdapter
   global?: boolean
 }
 
@@ -51,17 +33,5 @@ export interface SuperTokensModuleAsyncOptions
     | SuperTokensModuleOptionsFactory
   inject?: (InjectionToken | OptionalFactoryDependency)[]
 }
-
-export type AuthDecoratorOptions =
-  | {
-      permissions: string[]
-    }
-  | {
-      roles: string[]
-    }
-  | {
-      permissions: string[]
-      roles: string[]
-    }
 
 export type SuperTokensSession = Awaited<ReturnType<typeof getSession>>

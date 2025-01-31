@@ -3,12 +3,12 @@ import {
   Module,
   Provider,
   DynamicModule,
-  Global,
+  Inject,
 } from "@nestjs/common"
 
-import { SuperTokensAuthMiddleware } from "./supertokens.middleware"
+import { SuperTokensExpressAuthMiddleware } from "./supertokens-express.middleware"
 import { SUPERTOKENS_MODULE_OPTIONS } from "./supertokens.constants"
-import { SupertokensService } from "./supertokens.service"
+import { SuperTokensService } from "./supertokens.service"
 
 import {
   SuperTokensModuleOptions,
@@ -17,13 +17,19 @@ import {
 } from "./supertokens.types"
 
 @Module({
-  providers: [SupertokensService],
+  providers: [SuperTokensService],
   exports: [],
   controllers: [],
 })
 export class SuperTokensModule {
+  constructor(
+    @Inject(SUPERTOKENS_MODULE_OPTIONS)
+    private options: SuperTokensModuleOptions,
+  ) {}
+
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(SuperTokensAuthMiddleware).forRoutes("*")
+    if (this.options.framework !== "express") return
+    consumer.apply(SuperTokensExpressAuthMiddleware).forRoutes("*")
   }
 
   static forRoot(options: SuperTokensModuleOptions): DynamicModule {
@@ -36,7 +42,7 @@ export class SuperTokensModule {
           useValue: options,
           provide: SUPERTOKENS_MODULE_OPTIONS,
         },
-        SupertokensService,
+        SuperTokensService,
       ],
     }
   }
