@@ -25,9 +25,6 @@ export const recipeList = [];
 
 @Module({
   imports: [
-    DevtoolsModule.register({
-      http: process.env.NODE_ENV !== 'production',
-    }),
     SuperTokensModule.forRoot({
       framework: 'express',
       debug: true,

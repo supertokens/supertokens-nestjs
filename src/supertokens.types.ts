@@ -12,7 +12,6 @@ import { TypeInput } from "supertokens-node/types"
 export type SuperTokensModuleOptions = TypeInput & {
   framework: "express" | "fastify"
   fastifyAdapter?: FastifyAdapter
-  global?: boolean
 }
 
 export interface SuperTokensModuleOptionsFactory {
@@ -28,9 +27,7 @@ export interface SuperTokensModuleAsyncOptions
   useClass?: Type<SuperTokensModuleOptionsFactory>
   useFactory?: (
     ...args: unknown[]
-  ) =>
-    | Promise<SuperTokensModuleOptionsFactory>
-    | SuperTokensModuleOptionsFactory
+  ) => Promise<SuperTokensModuleOptions> | SuperTokensModuleOptions
   inject?: (InjectionToken | OptionalFactoryDependency)[]
 }
 

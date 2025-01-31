@@ -16,6 +16,8 @@ export class SuperTokensAuthGuard implements CanActivate {
 
   public async canActivate(context: ExecutionContext): Promise<boolean> {
     // TODO: Exclude supertokens routes if the guard is applied globally
+    console.log("guard called...")
+
     const isPublic = this.reflector.get(PublicAccess, context.getHandler())
 
     if (isPublic) return true
