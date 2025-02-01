@@ -39,6 +39,8 @@ describe("SuperTokensModule", () => {
 
     const app = moduleRef.createNestApplication()
     await app.init()
+    const module = app.get(SuperTokensModule)
+    expect(module).toBeDefined()
     await app.close()
   })
 
@@ -61,6 +63,8 @@ describe("SuperTokensModule", () => {
 
     const app = moduleRef.createNestApplication()
     await app.init()
+    const module = app.get(SuperTokensModule)
+    expect(module).toBeDefined()
     await app.close()
   })
 
