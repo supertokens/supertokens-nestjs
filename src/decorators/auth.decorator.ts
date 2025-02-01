@@ -1,10 +1,4 @@
 import { Reflector } from "@nestjs/core"
+import { AuthDecoratorOptions } from "../supertokens.types"
 
-type AuthOptions = {
-  roles?: string[]
-  permissions?: string[]
-  requireEmailVerification?: boolean
-  requireMFA?: boolean
-}
-
-export const Auth = Reflector.createDecorator<AuthOptions>()
+export const Auth = Reflector.createDecorator<AuthDecoratorOptions>()

@@ -29,7 +29,6 @@ export class SuperTokensModule {
 
   configure(consumer: MiddlewareConsumer) {
     if (this.options.framework !== "express") return
-    console.log("Express detected")
     consumer.apply(SuperTokensExpressAuthMiddleware).forRoutes("*")
   }
 

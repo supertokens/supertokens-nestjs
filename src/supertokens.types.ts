@@ -32,3 +32,10 @@ export interface SuperTokensModuleAsyncOptions
 }
 
 export type SuperTokensSession = Awaited<ReturnType<typeof getSession>>
+
+export type AuthDecoratorOptions = {
+  roles?: string[]
+  permissions?: string[]
+  requireEmailVerification?: boolean
+  requireMFA?: boolean
+}
