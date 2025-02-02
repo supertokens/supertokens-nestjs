@@ -1,13 +1,14 @@
-import ThirdParty from 'supertokens-node/recipe/thirdparty';
-import EmailPassword from 'supertokens-node/recipe/emailpassword';
-import Passwordless from 'supertokens-node/recipe/passwordless';
-import Session from 'supertokens-node/recipe/session';
-import Dashboard from 'supertokens-node/recipe/dashboard';
-import UserRoles from 'supertokens-node/recipe/userroles';
-import MultiFactorAuth from 'supertokens-node/recipe/multifactorauth';
-import AccountLinking from 'supertokens-node/recipe/accountlinking';
-import EmailVerification from 'supertokens-node/recipe/emailverification';
-import TOTP from 'supertokens-node/recipe/totp';
+import ThirdParty from 'supertokens-node/recipe/thirdparty'
+import EmailPassword from 'supertokens-node/recipe/emailpassword'
+import Passwordless from 'supertokens-node/recipe/passwordless'
+import Session from 'supertokens-node/recipe/session'
+import Dashboard from 'supertokens-node/recipe/dashboard'
+import UserRoles from 'supertokens-node/recipe/userroles'
+import MultiFactorAuth from 'supertokens-node/recipe/multifactorauth'
+import AccountLinking from 'supertokens-node/recipe/accountlinking'
+import EmailVerification from 'supertokens-node/recipe/emailverification'
+import TOTP from 'supertokens-node/recipe/totp'
+import { FastifyAdapter } from '@nestjs/platform-fastify'
 
 export const appInfo = {
   appName: 'ST',
@@ -15,9 +16,11 @@ export const appInfo = {
   websiteDomain: 'http://localhost:3000',
   apiBasePath: '/auth',
   websiteBasePath: '/auth',
-};
+}
 
-export const connectionURI = 'https://try.supertokens.com';
+export const fastifyAdapter = new FastifyAdapter()
+
+export const connectionURI = 'https://try.supertokens.com'
 
 export const recipeList = [
   EmailPassword.init(),
@@ -114,4 +117,4 @@ export const recipeList = [
   Session.init(),
   Dashboard.init(),
   UserRoles.init(),
-];
+]

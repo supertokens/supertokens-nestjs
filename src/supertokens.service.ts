@@ -3,11 +3,11 @@ import {
   Injectable,
   OnApplicationBootstrap,
   OnModuleInit,
-} from "@nestjs/common"
-import supertokens from "supertokens-node"
-import { SUPERTOKENS_MODULE_OPTIONS } from "./supertokens.constants"
-import { SuperTokensModuleOptions } from "./supertokens.types"
-import { plugin } from "supertokens-node/framework/fastify"
+} from '@nestjs/common'
+import supertokens from 'supertokens-node'
+import { SUPERTOKENS_MODULE_OPTIONS } from './supertokens.constants'
+import { SuperTokensModuleOptions } from './supertokens.types'
+import { plugin } from 'supertokens-node/framework/fastify'
 
 @Injectable()
 export class SuperTokensService implements OnModuleInit {
@@ -19,10 +19,10 @@ export class SuperTokensService implements OnModuleInit {
   }
 
   async onModuleInit() {
-    if (this.options.framework === "fastify") {
+    if (this.options.framework === 'fastify') {
       if (!this.options.fastifyAdapter)
         throw new Error(
-          "fastifyAdapter is required when using fastify as a framework",
+          'fastifyAdapter is required when using fastify as a framework',
         )
       await this.options.fastifyAdapter.register(plugin)
     }
