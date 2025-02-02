@@ -5,6 +5,9 @@
   "main": "index.ts",
   "scripts": {
     "build": "rimraf dist && tsc -p tsconfig.json",
+    "start:express": "(cd ./examples/react-frontend && npm run start) & (cd ./examples/express-backend && npm run start) & wait",
+    "start:fastify": "(cd ./examples/react-frontend && npm run start) & (cd ./examples/fastify-backend && npm run start) & wait",
+    "start:graphql": "(cd ./examples/react-frontend && npm run start) & (cd ./examples/graphql-backend && npm run start) & wait",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -30,6 +33,7 @@
   "devDependencies": {
     "@nestjs/platform-express": "^11.0.7",
     "@nestjs/testing": "^11.0.7",
+    "npm-run-all": "^4.1.5",
     "rimraf": "^6.0.1",
     "supertest": "^7.0.0",
     "typescript": "^5.7.3",

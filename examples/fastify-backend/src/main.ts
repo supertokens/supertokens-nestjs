@@ -3,11 +3,16 @@ import { AppModule } from './app.module'
 import supertokens from 'supertokens-node'
 import { SuperTokensExceptionFilter } from 'supertokens-nestjs'
 
-import { appInfo } from './config'
+import { appInfo, fastifyAdapter } from './config'
+import { NestFastifyApplication } from '@nestjs/platform-fastify'
+import { plugin } from 'supertokens-node/framework/fastify'
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule)
-  console.log(supertokens.getAllCORSHeaders())
+  // await fastifyAdapter.register(plugin)
+  const app = await NestFactory.create<NestFastifyApplication>(
+    AppModule,
+    fastifyAdapter,
+  )
   app.enableCors({
     origin: [appInfo.websiteDomain],
     allowedHeaders: ['content-type', ...supertokens.getAllCORSHeaders()],
