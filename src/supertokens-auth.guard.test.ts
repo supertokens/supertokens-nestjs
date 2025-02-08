@@ -1,48 +1,66 @@
-import { describe, it, beforeAll, expect, afterAll } from "vitest"
-import { Controller, Get, INestApplication, UseGuards } from "@nestjs/common"
-import request from "supertest"
-import { Test } from "@nestjs/testing"
-import Session from "supertokens-node/recipe/session"
-import EmailPassword from "supertokens-node/recipe/emailpassword"
+import {
+  vi,
+  describe,
+  it,
+  beforeAll,
+  expect,
+  afterAll,
+  beforeEach,
+  Mock,
+} from 'vitest'
+import { Controller, Get, INestApplication, UseGuards } from '@nestjs/common'
+import request from 'supertest'
+import { Test } from '@nestjs/testing'
+import Session from 'supertokens-node/recipe/session'
+import EmailPassword from 'supertokens-node/recipe/emailpassword'
+import UserRoles from 'supertokens-node/recipe/userroles'
+import { EmailVerificationClaim } from 'supertokens-node/recipe/emailverification'
+import { MultiFactorAuthClaim } from 'supertokens-node/recipe/multifactorauth'
 
-import { SuperTokensModule } from "./supertokens.module"
-import { SuperTokensAuthGuard } from "./supertokens-auth.guard"
-import { SuperTokensExceptionFilter } from "./supertokens-exception.filter"
-import { APP_GUARD } from "@nestjs/core"
-import { PublicAccess } from "./decorators"
+import { SuperTokensModule } from './supertokens.module'
+import { SuperTokensAuthGuard } from './supertokens-auth.guard'
+import { SuperTokensExceptionFilter } from './supertokens-exception.filter'
+import { APP_GUARD } from '@nestjs/core'
+import {
+  Session as SessionParamDecorator,
+  Auth,
+  PublicAccess,
+  VerifySession,
+} from './decorators'
 
 const AppInfo = {
-  appName: "ST",
-  apiDomain: "http://localhost:3001",
-  websiteDomain: "http://localhost:3000",
-  apiBasePath: "/auth",
-  websiteBasePath: "/auth",
+  appName: 'ST',
+  apiDomain: 'http://localhost:3001',
+  websiteDomain: 'http://localhost:3000',
+  apiBasePath: '/auth',
+  websiteBasePath: '/auth',
 }
 
-const connectionUri = "https://try.supertokens.io"
+const connectionUri = 'https://try.supertokens.io'
 
-describe("SuperTokensAuthGuard", () => {
-  beforeAll(async () => {})
+const getSession = Session.getSession as Mock<typeof getSession>
+vi.mock('supertokens-node/recipe/session', { spy: true })
 
-  it("should be called on a specific route", async () => {
+describe('SuperTokensAuthGuard', () => {
+  it('should be called on a specific route', async () => {
     @Controller()
     class TestController {
-      @Get("/")
+      @Get('/')
       getPublic(): string {
-        return "public"
+        return 'public'
       }
 
-      @Get("/protected")
+      @Get('/protected')
       @UseGuards(SuperTokensAuthGuard)
       getProtected(): string {
-        return "protected"
+        return 'protected'
       }
     }
 
     const moduleRef = await Test.createTestingModule({
       imports: [
         SuperTokensModule.forRoot({
-          framework: "express",
+          framework: 'express',
           supertokens: {
             connectionURI: connectionUri,
           },
@@ -64,25 +82,25 @@ describe("SuperTokensAuthGuard", () => {
     await app.close()
   })
 
-  it("should be called on a specific controller", async () => {
+  it('should be called on a specific controller', async () => {
     @Controller()
     @UseGuards(SuperTokensAuthGuard)
     class TestController {
-      @Get("/")
+      @Get('/')
       getPublic(): string {
-        return "public"
+        return 'public'
       }
 
-      @Get("/protected")
+      @Get('/protected')
       getProtected(): string {
-        return "protected"
+        return 'protected'
       }
     }
 
     const moduleRef = await Test.createTestingModule({
       imports: [
         SuperTokensModule.forRoot({
-          framework: "express",
+          framework: 'express',
           supertokens: {
             connectionURI: connectionUri,
           },
@@ -104,27 +122,27 @@ describe("SuperTokensAuthGuard", () => {
     await app.close()
   })
 
-  it("should be called globally", async () => {
-    @Controller("/first")
+  it('should be called globally', async () => {
+    @Controller('/first')
     class FirstController {
-      @Get("/")
+      @Get('/')
       getPublic(): string {
-        return "protected"
+        return 'protected'
       }
     }
 
-    @Controller("/second")
+    @Controller('/second')
     class SecondController {
-      @Get("/")
+      @Get('/')
       getPublic(): string {
-        return "protected"
+        return 'protected'
       }
     }
 
     const moduleRef = await Test.createTestingModule({
       imports: [
         SuperTokensModule.forRoot({
-          framework: "express",
+          framework: 'express',
           supertokens: {
             connectionURI: connectionUri,
           },
@@ -152,28 +170,83 @@ describe("SuperTokensAuthGuard", () => {
     await app.close()
   })
 
-  describe("Decorators", async () => {
+  describe('Decorators', async () => {
     let app: INestApplication
+    let guard: SuperTokensAuthGuard
+    let checkSessionDecoratorFn = vi.fn()
+
     beforeAll(async () => {
       @Controller()
       @UseGuards(SuperTokensAuthGuard)
       class TestController {
         @PublicAccess()
-        @Get("/")
-        getPublic(): string {
-          return "public"
-        }
+        @Get('/')
+        getPublic() {}
 
-        @Get("/protected")
-        getProtected(): string {
-          return "protected"
+        @Get('/protected')
+        getProtected() {}
+
+        @VerifySession({
+          checkDatabase: true,
+        })
+        @Get('/verify-session')
+        verifySession() {}
+
+        @Auth({
+          roles: ['admin'],
+        })
+        @Get('/roles')
+        roles() {}
+
+        @Auth({
+          permissions: ['write'],
+        })
+        @Get('/permissions')
+        permissions() {}
+
+        @Auth({
+          requireEmailVerification: true,
+        })
+        @Get('/require-email-verification')
+        requireEmailVerification() {}
+
+        @VerifySession({
+          overrideGlobalClaimValidators: (globalValidators) => [
+            ...globalValidators,
+            EmailVerificationClaim.validators.isVerified(),
+          ],
+        })
+        @Auth({
+          requireEmailVerification: false,
+        })
+        @Get('/disable-email-verification')
+        disableEmailVerification() {}
+
+        @Auth({
+          requireMFA: true,
+        })
+        @Get('/require-mfa')
+        requireMFA() {}
+
+        @Auth({
+          requireMFA: false,
+        })
+        @Get('/disable-mfa')
+        disableMFA() {}
+
+        @Get('/session-params')
+        sessionParams(
+          @SessionParamDecorator() session,
+          @SessionParamDecorator('userId') userId,
+        ) {
+          checkSessionDecoratorFn(session, userId)
         }
       }
 
       const moduleRef = await Test.createTestingModule({
         imports: [
           SuperTokensModule.forRoot({
-            framework: "express",
+            framework: 'express',
             supertokens: {
               connectionURI: connectionUri,
             },
@@ -185,6 +258,7 @@ describe("SuperTokensAuthGuard", () => {
       }).compile()
 
       app = moduleRef.createNestApplication()
+      guard = moduleRef.get(SuperTokensAuthGuard)
 
       app.useGlobalFilters(new SuperTokensExceptionFilter())
       await app.init()
@@ -198,20 +272,92 @@ describe("SuperTokensAuthGuard", () => {
       }
     })
 
-    it("[PublicAccess] allows public access on a route", async () => {
+    beforeEach(async () => {
+      getSession.mockClear()
+    })
+
+    it('PublicAccess', async () => {
       await request(app.getHttpServer()).get(`/`).expect(200)
       await request(app.getHttpServer()).get(`/protected`).expect(401)
     })
-    it.todo("[VerifySession] changes the get session options", async () => {})
-    it.todo("[Auth] allows access on a route based on a role")
-    it.todo("[Auth] does not allow access on a route based on a role")
-    it.todo("[Auth] allows access on a route based on a permission")
-    it.todo("[Auth] does not allow access on a route based on a permission")
-    it.todo("[Auth] allows access on a route based on both email verification")
-    it.todo(
-      "[Auth] does not allow access on a route based on email verification",
-    )
-    it.todo("[Auth] allows access on a route based on MFA")
-    it.todo("[Auth] does not allow access on a route based on MFA")
+
+    it('VerifySession', async () => {
+      await request(app.getHttpServer()).get(`/protected`)
+      expect(getSession).toHaveBeenCalledTimes(1)
+      const [, , defaultVerifySessionOptions] = getSession.mock.lastCall
+      expect(defaultVerifySessionOptions.checkDatabase).toBeUndefined()
+      await request(app.getHttpServer()).get(`/verify-session`)
+      expect(getSession).toHaveBeenCalledTimes(2)
+      const [, , customVerifySessionOptions] = getSession.mock.lastCall
+      expect(customVerifySessionOptions.checkDatabase).toBeTruthy()
+    })
+    it('Auth[roles]', async () => {
+      await request(app.getHttpServer()).get(`/roles`)
+      expect(getSession).toHaveBeenCalledTimes(1)
+      const [, , verifySessionOptions] = getSession.mock.lastCall
+      const actualValidators =
+        await verifySessionOptions.overrideGlobalClaimValidators([])
+      const expectedValidators = [
+        UserRoles.UserRoleClaim.validators.includesAll(['admin']),
+      ]
+      for (const [index, validator] of actualValidators.entries()) {
+        expect(validator.id).toBe(expectedValidators[index].id)
+      }
+    })
+    it('Auth[permissions]', async () => {
+      await request(app.getHttpServer()).get(`/permissions`)
+      expect(getSession).toHaveBeenCalledTimes(1)
+      const [, , verifySessionOptions] = getSession.mock.lastCall
+      const actualValidators =
+        await verifySessionOptions.overrideGlobalClaimValidators([])
+      const expectedValidators = [
+        UserRoles.PermissionClaim.validators.includesAll(['write']),
+      ]
+      for (const [index, validator] of actualValidators.entries()) {
+        expect(validator.id).toBe(expectedValidators[index].id)
+      }
+    })
+    it('Auth[requireEmailVerification]', async () => {
+      await request(app.getHttpServer()).get(`/require-email-verification`)
+      expect(getSession).toHaveBeenCalledTimes(1)
+      const [, , requireEvVerifySessionOptions] = getSession.mock.lastCall
+      const actualValidators =
+        await requireEvVerifySessionOptions.overrideGlobalClaimValidators([])
+      const expectedValidators = [
+        EmailVerificationClaim.validators.isVerified(),
+      ]
+      for (const [index, validator] of actualValidators.entries()) {
+        expect(validator.id).toBe(expectedValidators[index].id)
+      }
+      await request(app.getHttpServer()).get(`/disable-email-verification`)
+      expect(getSession).toHaveBeenCalledTimes(2)
+      const [, , disableEvVerifySessionOptions] = getSession.mock.lastCall
+      const disableEvValidators =
+        await disableEvVerifySessionOptions.overrideGlobalClaimValidators([])
+      expect(disableEvValidators).toEqual([])
+    })
+    it('Auth[requireMFA]', async () => {
+      await request(app.getHttpServer()).get(`/require-mfa`)
+      expect(getSession).toHaveBeenCalledTimes(1)
+      const [, , verifySessionOptions] = getSession.mock.lastCall
+      const actualValidators =
+        await verifySessionOptions.overrideGlobalClaimValidators([])
+      const expectedValidators = [
+        MultiFactorAuthClaim.validators.hasCompletedMFARequirementsForAuth(),
+      ]
+      for (const [index, validator] of actualValidators.entries()) {
+        expect(validator.id).toBe(expectedValidators[index].id)
+      }
+    })
+    it('Session', async () => {
+      const userId = 'userId'
+      const mockSession = {
+        getUserId: () => userId,
+      }
+      getSession.mockImplementationOnce(() => mockSession)
+      await request(app.getHttpServer()).get(`/session-params`)
+      expect(getSession).toHaveBeenCalledTimes(1)
+      expect(checkSessionDecoratorFn).toHaveBeenCalledWith(mockSession, userId)
+    })
   })
 })
