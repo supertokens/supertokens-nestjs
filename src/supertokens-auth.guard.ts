@@ -1,18 +1,18 @@
-import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common"
-import { Reflector } from "@nestjs/core"
-import UserRoles from "supertokens-node/recipe/userroles"
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common'
+import { Reflector } from '@nestjs/core'
+import UserRoles from 'supertokens-node/recipe/userroles'
 import {
   getSession,
   SessionClaimValidator,
   VerifySessionOptions,
-} from "supertokens-node/recipe/session"
-import { Error as STError } from "supertokens-node/recipe/session"
+} from 'supertokens-node/recipe/session'
+import { Error as STError } from 'supertokens-node/recipe/session'
 
-import { EmailVerificationClaim } from "supertokens-node/recipe/emailverification"
-import { MultiFactorAuthClaim } from "supertokens-node/recipe/multifactorauth"
-import { VerifySession, PublicAccess, Auth } from "./decorators"
-import { AuthDecoratorOptions, SuperTokensSession } from "./supertokens.types"
-import { JSONValue } from "supertokens-node/types"
+import { EmailVerificationClaim } from 'supertokens-node/recipe/emailverification'
+import { MultiFactorAuthClaim } from 'supertokens-node/recipe/multifactorauth'
+import { VerifySession, PublicAccess, Auth } from './decorators'
+import { AuthDecoratorOptions, SuperTokensSession } from './supertokens.types'
+import { JSONValue } from 'supertokens-node/types'
 
 @Injectable()
 export class SuperTokensAuthGuard implements CanActivate {
@@ -22,97 +22,48 @@ export class SuperTokensAuthGuard implements CanActivate {
   }
 
   public async canActivate(context: ExecutionContext): Promise<boolean> {
-    // TODO: Exclude supertokens routes if the guard is applied globally
     const isPublic = this.reflector.get(PublicAccess, context.getHandler())
-
     if (isPublic) return true
 
+    const ctx = context.switchToHttp()
+    const req = ctx.getRequest()
+    const resp = ctx.getResponse()
+
+    const verifySessionOptions = this.getVerifySessionOptions(context)
+    const session = await getSession(req, resp, verifySessionOptions)
+    req.session = session
+    return true
+  }
+
+  private getVerifySessionOptions(
+    context: ExecutionContext,
+  ): VerifySessionOptions {
     const verifySessionOptions: VerifySessionOptions | undefined =
       this.reflector.get(VerifySession, context.getHandler())
     const authOptions: AuthDecoratorOptions | undefined = this.reflector.get(
       Auth,
       context.getHandler(),
     )
-    const ctx = context.switchToHttp()
-    const req = ctx.getRequest()
-    const resp = ctx.getResponse()
+    const extraClaimValidators: SessionClaimValidator[] = []
 
-    let parsedVerifySessionOptions = verifySessionOptions
-    parsedVerifySessionOptions = this.addEmailVerificationToSessionOptions(
-      authOptions?.requireEmailVerification,
-      verifySessionOptions,
-    )
-    parsedVerifySessionOptions = this.removeMFAFromSessionOptions(
-      authOptions?.requireMFA,
-      verifySessionOptions,
-    )
-
-    const session = await getSession(req, resp, parsedVerifySessionOptions)
-    req.session = session
-
-    await this.validateRoles(session, authOptions?.roles)
-    await this.validatePermissions(session, authOptions?.permissions)
-    await this.validateMFA(session, authOptions?.requireMFA)
-
-    return true
-  }
-
-  private async validateRoles(
-    session: SuperTokensSession,
-    requiredRoles: string[] | undefined,
-  ) {
-    if (!requiredRoles) return
-    const roles = await session!.getClaimValue(UserRoles.UserRoleClaim)
-    if (!roles) {
-      throw new STClaimError(
-        UserRoles.UserRoleClaim.key,
-        "User does not have the required roles",
-        "Required roles not found",
+    if (authOptions?.roles) {
+      extraClaimValidators.push(
+        UserRoles.UserRoleClaim.validators.includesAll(authOptions.roles),
       )
     }
-
-    const hasRoles = requiredRoles.every((requiredScope) =>
-      roles.includes(requiredScope),
-    )
-    if (!hasRoles) {
-      throw new STError({
-        type: STError.INVALID_CLAIMS,
-        message: "User does not have the required roles",
-        payload: [
-          {
-            id: UserRoles.PermissionClaim.key,
-            reason: "Required roles not found",
-          },
-        ],
-      })
+    if (authOptions?.permissions) {
+      extraClaimValidators.push(
+        UserRoles.PermissionClaim.validators.includesAll(
+          authOptions.permissions,
+        ),
+      )
+    }
+    if (authOptions?.requireEmailVerification) {
+      extraClaimValidators.push(EmailVerificationClaim.validators.isVerified())
     }
   }
 
-  private async validatePermissions(
-    session: SuperTokensSession,
-    requiredPermissions: string[] | undefined,
-  ) {
-    if (!requiredPermissions) return
-    const permissions = await session!.getClaimValue(UserRoles.PermissionClaim)
-    if (!permissions) {
-      throw new STClaimError(
-        UserRoles.PermissionClaim.key,
-        "User does not have the required permissions",
-        "Required permissions not found",
-      )
-    }
-
-    const hasPermissions = requiredPermissions.every((requiredScope) =>
-      permissions.includes(requiredScope),
-    )
-    if (!hasPermissions) {
-      throw new STClaimError(
-        UserRoles.PermissionClaim.key,
-        "User does not have the required permissions",
-        "Required permissions not found",
-      )
-    }
-  }
+  private validateAuthOptions(authOptions: AuthDecoratorOptions | undefined) {}
 
   private async validateMFA(
     session: SuperTokensSession,
@@ -126,15 +77,15 @@ export class SuperTokensAuthGuard implements CanActivate {
     }
 
     let completedFactors = claimValue.c
-    if ("totp" in completedFactors) {
+    if ('totp' in completedFactors) {
       return
     } else {
       throw new STClaimError(
         MultiFactorAuthClaim.key,
-        "User has not finished TOTP",
+        'User has not finished TOTP',
         {
-          message: "Factor validation failed: totp not completed",
-          factorId: "totp",
+          message: 'Factor validation failed: totp not completed',
+          factorId: 'totp',
         },
       )
     }
