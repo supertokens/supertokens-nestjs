@@ -56,14 +56,14 @@ describe('SuperTokensExceptionFilter', () => {
     exceptionFilter = new SuperTokensExceptionFilter()
     app.useGlobalFilters(exceptionFilter)
     await app.init()
-    // This is required so that the filtes get applied
+    // This is required so that the filters get applied
     await app.listen(0)
   })
 
   it('should catch authentication errors', async () => {
-    const spy = vi.spyOn(exceptionFilter, 'catch')
-    await request(app.getHttpServer()).get(`/`)
+    const spy = vi.spyOn(exceptionFilter, 'handler')
     expect(spy).not.toHaveBeenCalled()
+    await request(app.getHttpServer()).get(`/`)
     await request(app.getHttpServer()).get(`/protected`)
     expect(spy).toHaveBeenCalled()
   })

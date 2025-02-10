@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common'
+import { Controller, Delete, Get, Patch, Post } from '@nestjs/common'
 
 import { PublicAccess, Auth, Session, VerifySession } from 'supertokens-nestjs'
 
@@ -6,57 +6,73 @@ import { PublicAccess, Auth, Session, VerifySession } from 'supertokens-nestjs'
 export class AppController {
   constructor() {}
 
-  @Get()
-  protectedRoute(): string {
-    return 'protected'
-  }
-
-  @Get('/public')
+  @Get('/product')
   @PublicAccess()
-  publicAccess(): string {
-    return 'public'
+  listProducts() {
+    return []
   }
 
-  @Get('/verify-session')
-  @VerifySession()
-  verifySession(): string {
-    return 'verifySession'
+  // This route will be protected by default
+  // given that the SuperTokensAuthGuard was applied globally
+  @Post('/product')
+  addProduct() {
+    return
   }
 
-  @Get('/required-permission')
-  @Auth({
-    permissions: ['write'],
-  })
-  requiredPermission(): string {
-    return 'requiredPermission'
-  }
-
-  @Get('/param-decorator')
-  parameterDecorator(session: Session, userId: Session['userId']): string {
-    return userId
-  }
-
-  @Get('/required-role')
   @Auth({
     roles: ['admin'],
   })
-  requiredRole(): string {
-    return 'requiredRole'
+  @Delete('/product')
+  deleteProduct() {
+    return
   }
 
-  @Get('/skip-mfa')
   @Auth({
-    requireMFA: false,
+    roles: ['admin'],
+    permissions: ['product.update'],
   })
-  skipMFA(): string {
-    return 'skipMFA'
+  @Patch('/product/:productId')
+  updateProduct() {
+    return
   }
 
-  @Get('/skip-emailverification')
+  @Auth({
+    requireEmailVerification: true,
+  })
+  @Get('/account/profile')
+  getAccountProfile(@Session('userId') userId: string) {
+    return {}
+  }
+
   @Auth({
     requireEmailVerification: false,
   })
-  skipEmailVerification(): string {
-    return 'skipEmailVerification'
+  @Get('/account/settings')
+  getAccountSettings(@Session('userId') userId: string) {
+    return {}
+  }
+
+  @Auth({
+    requireMFA: false,
+  })
+  @Get('/order')
+  listOrders() {
+    return []
+  }
+
+  @Auth({
+    requireMFA: true,
+  })
+  @Patch('/order/:orderId')
+  updateOrder() {
+    return
+  }
+
+  @VerifySession({
+    checkDatabase: true,
+  })
+  @Post('/order/:orderId/cancel')
+  cancelOrder() {
+    return
   }
 }
