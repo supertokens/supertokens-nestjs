@@ -1,13 +1,8 @@
-import { describe, it, beforeAll, expect, beforeEach } from 'vitest'
-import request from 'supertest'
-import { INestApplication, Module } from '@nestjs/common'
+import { describe, it, beforeAll, expect } from 'vitest'
 import { Test } from '@nestjs/testing'
 import Session from 'supertokens-node/recipe/session'
-import EmailPassword from 'supertokens-node/recipe/emailpassword'
 
-import { Controller, Get } from '@nestjs/common'
 import { SuperTokensModule } from './supertokens.module'
-import { SuperTokensExceptionFilter } from './supertokens-exception.filter'
 
 const AppInfo = {
   appName: 'ST',
@@ -17,7 +12,8 @@ const AppInfo = {
   websiteBasePath: '/auth',
 }
 
-const connectionUri = 'https://try.supertokens.io'
+// @ts-expect-error
+const connectionUri = import.meta.env.VITE_ST_CONNECTION_URI
 
 describe('SuperTokensModule', () => {
   beforeAll(async () => {})
@@ -66,7 +62,4 @@ describe('SuperTokensModule', () => {
     expect(module).toBeDefined()
     await app.close()
   })
-
-  it.todo('should expose the SDK routes via the express middleware')
-  it.todo('should expose the SDK routes via the fastify adapter')
 })

@@ -17,7 +17,8 @@ const AppInfo = {
   websiteBasePath: '/auth',
 }
 
-const connectionUri = 'https://try.supertokens.io'
+// @ts-expect-error
+const connectionUri = import.meta.env.VITE_ST_CONNECTION_URI
 
 describe('SuperTokensExceptionFilter', () => {
   let app: INestApplication
