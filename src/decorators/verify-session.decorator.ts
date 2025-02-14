@@ -1,6 +1,5 @@
-import { Reflector } from "@nestjs/core"
-import { VerifySessionOptions } from "supertokens-node/recipe/session"
+import { Reflector } from '@nestjs/core'
+import { VerifySessionDecoratorOptions } from '../supertokens.types'
 
-// Sets custom session options
-// that will be used by the AuthGuard when calling verifySession
-export const VerifySession = Reflector.createDecorator<VerifySessionOptions>()
+export const VerifySession =
+  Reflector.createDecorator<VerifySessionDecoratorOptions>()

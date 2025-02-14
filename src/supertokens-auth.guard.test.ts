@@ -23,7 +23,6 @@ import { SuperTokensExceptionFilter } from './supertokens-exception.filter'
 import { APP_GUARD } from '@nestjs/core'
 import {
   Session as SessionParamDecorator,
-  Auth,
   PublicAccess,
   VerifySession,
 } from './decorators'
@@ -193,19 +192,19 @@ describe('SuperTokensAuthGuard', () => {
         @Get('/verify-session')
         verifySession() {}
 
-        @Auth({
+        @VerifySession({
           roles: ['admin'],
         })
         @Get('/roles')
         roles() {}
 
-        @Auth({
+        @VerifySession({
           permissions: ['write'],
         })
         @Get('/permissions')
         permissions() {}
 
-        @Auth({
+        @VerifySession({
           requireEmailVerification: true,
         })
         @Get('/require-email-verification')
@@ -217,19 +216,19 @@ describe('SuperTokensAuthGuard', () => {
             EmailVerificationClaim.validators.isVerified(),
           ],
         })
-        @Auth({
+        @VerifySession({
           requireEmailVerification: false,
         })
         @Get('/disable-email-verification')
         disableEmailVerification() {}
 
-        @Auth({
+        @VerifySession({
           requireMFA: true,
         })
         @Get('/require-mfa')
         requireMFA() {}
 
-        @Auth({
+        @VerifySession({
           requireMFA: false,
         })
         @Get('/disable-mfa')

@@ -8,8 +8,7 @@ import {
 } from 'supertokens-node/recipe/session'
 import { EmailVerificationClaim } from 'supertokens-node/recipe/emailverification'
 import { MultiFactorAuthClaim } from 'supertokens-node/recipe/multifactorauth'
-import { VerifySession, PublicAccess, Auth } from './decorators'
-import { AuthDecoratorOptions } from './supertokens.types'
+import { VerifySession, PublicAccess } from './decorators'
 
 @Injectable()
 export class SuperTokensAuthGuard implements CanActivate {
@@ -36,40 +35,43 @@ export class SuperTokensAuthGuard implements CanActivate {
   private getVerifySessionOptions(
     context: ExecutionContext,
   ): VerifySessionOptions | undefined {
-    const verifySessionOptions: VerifySessionOptions | undefined =
-      this.reflector.get(VerifySession, context.getHandler())
-    const authOptions: AuthDecoratorOptions | undefined = this.reflector.get(
-      Auth,
+    const verifySessionDecoratorOptions = this.reflector.get(
+      VerifySession,
       context.getHandler(),
     )
+    const {
+      roles,
+      permissions,
+      requireEmailVerification,
+      requireMFA,
+      ...verifySessionOptions
+    } = verifySessionDecoratorOptions || {}
     const extraClaimValidators: SessionClaimValidator[] = []
     const validatorsToRemove: string[] = []
 
-    if (authOptions?.roles) {
+    if (roles) {
       extraClaimValidators.push(
-        UserRoles.UserRoleClaim.validators.includesAll(authOptions.roles),
+        UserRoles.UserRoleClaim.validators.includesAll(roles),
       )
     }
 
-    if (authOptions?.permissions) {
+    if (permissions) {
       extraClaimValidators.push(
-        UserRoles.PermissionClaim.validators.includesAll(
-          authOptions.permissions,
-        ),
+        UserRoles.PermissionClaim.validators.includesAll(permissions),
       )
     }
 
-    if (authOptions?.requireEmailVerification) {
+    if (requireEmailVerification) {
       extraClaimValidators.push(EmailVerificationClaim.validators.isVerified())
-    } else if (authOptions?.requireEmailVerification === false) {
+    } else if (requireEmailVerification === false) {
       validatorsToRemove.push(EmailVerificationClaim.key)
     }
 
-    if (authOptions?.requireMFA) {
+    if (requireMFA) {
       extraClaimValidators.push(
         MultiFactorAuthClaim.validators.hasCompletedMFARequirementsForAuth(),
       )
-    } else if (authOptions?.requireMFA === false) {
+    } else if (requireMFA === false) {
       validatorsToRemove.push(MultiFactorAuthClaim.key)
     }
 
