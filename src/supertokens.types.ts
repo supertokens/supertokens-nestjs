@@ -3,14 +3,17 @@ import {
   OptionalFactoryDependency,
   ModuleMetadata,
   Type,
-} from "@nestjs/common"
+} from '@nestjs/common'
 
-import { getSession } from "supertokens-node/recipe/session"
-import { FastifyAdapter } from "@nestjs/platform-fastify"
-import { TypeInput } from "supertokens-node/types"
+import {
+  VerifySessionOptions,
+  getSession,
+} from 'supertokens-node/recipe/session'
+import { FastifyAdapter } from '@nestjs/platform-fastify'
+import { TypeInput } from 'supertokens-node/types'
 
 export type SuperTokensModuleOptions = TypeInput & {
-  framework: "express" | "fastify"
+  framework: 'express' | 'fastify'
   fastifyAdapter?: FastifyAdapter
 }
 
@@ -21,7 +24,7 @@ export interface SuperTokensModuleOptionsFactory {
 }
 
 export interface SuperTokensModuleAsyncOptions
-  extends Pick<ModuleMetadata, "imports"> {
+  extends Pick<ModuleMetadata, 'imports'> {
   global?: boolean
   useExisting?: Type<SuperTokensModuleOptionsFactory>
   useClass?: Type<SuperTokensModuleOptionsFactory>
@@ -33,7 +36,7 @@ export interface SuperTokensModuleAsyncOptions
 
 export type SuperTokensSession = Awaited<ReturnType<typeof getSession>>
 
-export type AuthDecoratorOptions = {
+export type VerifySessionDecoratorOptions = VerifySessionOptions & {
   roles?: string[]
   permissions?: string[]
   requireEmailVerification?: boolean
