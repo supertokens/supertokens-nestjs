@@ -69,7 +69,9 @@ export class AppController {
   }
 
   @VerifySession({
-    checkDatabase: true,
+    options: {
+      checkDatabase: true,
+    },
   })
   @Post('/order/:orderId/cancel')
   cancelOrder() {
