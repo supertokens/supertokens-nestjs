@@ -36,7 +36,8 @@ export interface SuperTokensModuleAsyncOptions
 
 export type SuperTokensSession = Awaited<ReturnType<typeof getSession>>
 
-export type VerifySessionDecoratorOptions = VerifySessionOptions & {
+export type VerifySessionDecoratorOptions = {
+  options?: VerifySessionOptions
   roles?: string[]
   permissions?: string[]
   requireEmailVerification?: boolean

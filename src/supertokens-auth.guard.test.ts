@@ -187,7 +187,9 @@ describe('SuperTokensAuthGuard', () => {
         getProtected() {}
 
         @VerifySession({
-          checkDatabase: true,
+          options: {
+            checkDatabase: true,
+          },
         })
         @Get('/verify-session')
         verifySession() {}
@@ -211,12 +213,12 @@ describe('SuperTokensAuthGuard', () => {
         requireEmailVerification() {}
 
         @VerifySession({
-          overrideGlobalClaimValidators: (globalValidators) => [
-            ...globalValidators,
-            EmailVerificationClaim.validators.isVerified(),
-          ],
-        })
-        @VerifySession({
+          options: {
+            overrideGlobalClaimValidators: (globalValidators) => [
+              ...globalValidators,
+              EmailVerificationClaim.validators.isVerified(),
+            ],
+          },
           requireEmailVerification: false,
         })
         @Get('/disable-email-verification')

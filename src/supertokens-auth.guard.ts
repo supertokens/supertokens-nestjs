@@ -44,7 +44,7 @@ export class SuperTokensAuthGuard implements CanActivate {
       permissions,
       requireEmailVerification,
       requireMFA,
-      ...verifySessionOptions
+      options: verifySessionOptions,
     } = verifySessionDecoratorOptions || {}
     const extraClaimValidators: SessionClaimValidator[] = []
     const validatorsToRemove: string[] = []
@@ -79,6 +79,7 @@ export class SuperTokensAuthGuard implements CanActivate {
       globalValidators: SessionClaimValidator[],
     ) => {
       let parsedValidators = [...globalValidators]
+
       if (validatorsToRemove.length) {
         parsedValidators = parsedValidators.filter(
           (validator) => !validatorsToRemove.includes(validator.id),
