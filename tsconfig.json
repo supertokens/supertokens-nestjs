@@ -13,6 +13,20 @@
     "rootDir": "./src",
     "skipLibCheck": true
   },
-  "include": ["src/**/*", "../index.ts"],
+  "include": [
+    "src/**/*",
+    "../index.ts",
+    "dist/tmp/supertokens.constants.ts",
+    "dist/tmp/supertokens.module.test.ts",
+    "dist/tmp/supertokens-exception.filter.ts",
+    "dist/tmp/supertokens.service.ts",
+    "dist/tmp/supertokens.types.ts",
+    "dist/tmp/supertokens-auth.guard.test.ts",
+    "dist/tmp/supertokens.module.ts",
+    "dist/tmp/supertokens-auth.guard.ts",
+    "dist/tmp/supertokens-express.middleware.ts",
+    "dist/tmp/supertokens-exception.filter.test.ts",
+    "vite.env.d.ts"
+  ],
   "exclude": ["node_modules", "**/*.spec.ts", "dist"]
 }
