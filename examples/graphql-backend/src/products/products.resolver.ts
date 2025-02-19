@@ -5,7 +5,7 @@ import { CreateProductInput } from './products.dto'
 import { Product } from './products.model'
 import { ProductsService } from './products.service'
 
-import { PublicAccess, Auth, Session, VerifySession } from 'supertokens-nestjs'
+import { PublicAccess, Session, VerifySession } from 'supertokens-nestjs'
 
 const pubSub = new PubSub()
 
@@ -14,7 +14,7 @@ export class ProductsResolver {
   constructor(private readonly productService: ProductsService) {}
 
   // This route will be protected by default
-  // given that the SuperTokensAuthGuard was applied globally
+  // given that the SuperTokensVerifySessionGuard was applied globally
   @Query((returns) => Product)
   async product(@Args('id') id: string): Promise<Product> {
     const recipe = await this.productService.findOneById(id)
@@ -30,7 +30,7 @@ export class ProductsResolver {
     return this.productService.findAll()
   }
 
-  @Auth({
+  @VerifySession({
     roles: ['admin'],
   })
   @Mutation((returns) => Product)
@@ -42,7 +42,7 @@ export class ProductsResolver {
     return product
   }
 
-  @Auth({
+  @VerifySession({
     roles: ['admin'],
     permissions: ['product.update'],
   })
@@ -54,7 +54,7 @@ export class ProductsResolver {
     return this.productService.update(id, updateProductInput)
   }
 
-  @Auth({
+  @VerifySession({
     requireMFA: false,
   })
   @Mutation((returns) => Boolean)
