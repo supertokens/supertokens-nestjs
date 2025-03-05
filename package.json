@@ -1,8 +1,9 @@
 {
   "name": "supertokens-nestjs",
   "version": "0.0.1",
-  "description": "",
-  "main": "index.ts",
+  "description": "SuperTokens integration for NestJS applications",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "rimraf dist && tsc -p tsconfig.json",
     "start:express": "(cd ./examples/react-frontend && npm run start) & (cd ./examples/express-backend && npm run start) & wait",
@@ -11,12 +12,34 @@
     "test": "vitest run",
     "test:watch": "vitest"
   },
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "express": "^4.21.2"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/supertokens/supertokens-nestjs.git"
   },
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    },
+    "./index": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    },
+    "./index.js": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    }
+  },
+  "keywords": [
+    "supertokens",
+    "nestjs",
+    "nodejs",
+    "authentication",
+    "session-management"
+  ],
+  "license": "Apache-2.0",
   "peerDependencies": {
+    "express": "^4.21.2",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/platform-fastify": "^11.0.6",

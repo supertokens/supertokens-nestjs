@@ -29,8 +29,5 @@ node_modules/
 
 .cache
 
-dist
-index.d.ts
-index.js
 
 
