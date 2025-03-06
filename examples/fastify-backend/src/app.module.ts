@@ -5,12 +5,13 @@ import { AppController } from './app.controller'
 
 import { SuperTokensModule, SuperTokensAuthGuard } from 'supertokens-nestjs'
 
-import { appInfo, connectionURI, recipeList } from './config'
+import { fastifyAdapter, appInfo, connectionURI, recipeList } from './config'
 
 @Module({
   imports: [
     SuperTokensModule.forRoot({
-      framework: 'express',
+      framework: 'fastify',
+      fastifyAdapter,
       debug: true,
       supertokens: {
         connectionURI,

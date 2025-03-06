@@ -5,10 +5,8 @@ import { SuperTokensExceptionFilter } from 'supertokens-nestjs'
 
 import { appInfo, fastifyAdapter } from './config'
 import { NestFastifyApplication } from '@nestjs/platform-fastify'
-import { plugin } from 'supertokens-node/framework/fastify'
 
 async function bootstrap() {
-  // await fastifyAdapter.register(plugin)
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     fastifyAdapter,
