@@ -1,6 +1,6 @@
 import { Controller, Delete, Get, Patch, Post } from '@nestjs/common'
 
-import { PublicAccess, Auth, Session, VerifySession } from 'supertokens-nestjs'
+import { PublicAccess, Session, VerifySession } from 'supertokens-nestjs'
 
 @Controller()
 export class AppController {
@@ -19,7 +19,7 @@ export class AppController {
     return
   }
 
-  @Auth({
+  @VerifySession({
     roles: ['admin'],
   })
   @Delete('/product')
@@ -27,7 +27,7 @@ export class AppController {
     return
   }
 
-  @Auth({
+  @VerifySession({
     roles: ['admin'],
     permissions: ['product.update'],
   })
@@ -36,7 +36,7 @@ export class AppController {
     return
   }
 
-  @Auth({
+  @VerifySession({
     requireEmailVerification: true,
   })
   @Get('/account/profile')
@@ -44,7 +44,7 @@ export class AppController {
     return {}
   }
 
-  @Auth({
+  @VerifySession({
     requireEmailVerification: false,
   })
   @Get('/account/settings')
@@ -52,7 +52,7 @@ export class AppController {
     return {}
   }
 
-  @Auth({
+  @VerifySession({
     requireMFA: false,
   })
   @Get('/order')
@@ -60,7 +60,7 @@ export class AppController {
     return []
   }
 
-  @Auth({
+  @VerifySession({
     requireMFA: true,
   })
   @Patch('/order/:orderId')

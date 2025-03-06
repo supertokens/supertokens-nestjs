@@ -1,0 +1,36 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+directive @upper on FIELD_DEFINITION
+
+"""product"""
+type Product {
+  id: ID!
+  name: String!
+  category: String!
+  price: Float!
+  tags: [String!]!
+}
+
+type Query {
+  product(id: String!): Product!
+  recipes: [Product!]!
+}
+
+type Mutation {
+  addProduct(createProductPayload: CreateProductInput!): Product!
+  updateProduct(id: String!, updateProductPayload: CreateProductInput!): Product!
+  removeProduct(id: String!): Boolean!
+}
+
+input CreateProductInput {
+  name: String!
+  category: String!
+  price: Float!
+  tags: [String!]!
+}
+
+type Subscription {
+  productCreated: Product!
+}

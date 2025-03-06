@@ -6,6 +6,11 @@ type SessionPropertyName =
   | 'accessToken'
   | 'accessTokenPayload'
 
+/**
+ * Decorator to get the session object from the request
+ * @param propName - The name of the property to get from the session object
+ * @returns The value of the property from the session object or the session object itself if no propName is provided
+ */
 export const Session = createParamDecorator(
   (propName: SessionPropertyName | undefined, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest()
