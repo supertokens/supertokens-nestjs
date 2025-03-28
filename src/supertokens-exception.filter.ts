@@ -1,7 +1,6 @@
 import { ExceptionFilter, Catch, ArgumentsHost } from '@nestjs/common'
-
-import { errorHandler } from 'supertokens-node/framework/express'
 import { Error as STError } from 'supertokens-node'
+import { errorHandler } from 'supertokens-node/framework/express'
 
 @Catch(STError)
 export class SuperTokensExceptionFilter implements ExceptionFilter {
@@ -13,7 +12,6 @@ export class SuperTokensExceptionFilter implements ExceptionFilter {
 
   catch(exception: Error, host: ArgumentsHost) {
     const ctx = host.switchToHttp()
-
     const resp = ctx.getResponse()
 
     this.handler(exception, ctx.getRequest(), resp, ctx.getNext())

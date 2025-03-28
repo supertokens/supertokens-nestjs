@@ -11,21 +11,29 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const vitest_1 = require("vitest");
 const common_1 = require("@nestjs/common");
-const supertest_1 = require("supertest");
+const supertest_1 = __importDefault(require("supertest"));
 const testing_1 = require("@nestjs/testing");
-const session_1 = require("supertokens-node/recipe/session");
-const emailpassword_1 = require("supertokens-node/recipe/emailpassword");
-const userroles_1 = require("supertokens-node/recipe/userroles");
+const session_1 = __importDefault(require("supertokens-node/recipe/session"));
+const emailpassword_1 = __importDefault(require("supertokens-node/recipe/emailpassword"));
+const userroles_1 = __importDefault(require("supertokens-node/recipe/userroles"));
 const emailverification_1 = require("supertokens-node/recipe/emailverification");
 const multifactorauth_1 = require("supertokens-node/recipe/multifactorauth");
+const graphql_1 = require("@nestjs/graphql");
+const apollo_1 = require("@nestjs/apollo");
+const supertokens_node_1 = require("supertokens-node");
+const graphql_2 = require("graphql");
 const supertokens_module_1 = require("./supertokens.module");
 const supertokens_auth_guard_1 = require("./supertokens-auth.guard");
 const supertokens_exception_filter_1 = require("./supertokens-exception.filter");
 const core_1 = require("@nestjs/core");
 const decorators_1 = require("./decorators");
+const fastify_1 = require("supertokens-node/framework/fastify");
 const AppInfo = {
     appName: 'ST',
     apiDomain: 'http://localhost:3001',
@@ -404,5 +412,114 @@ vitest_1.vi.mock('supertokens-node/recipe/session', { spy: true });
             (0, vitest_1.expect)(getSession).toHaveBeenCalledTimes(1);
             (0, vitest_1.expect)(checkSessionDecoratorFn).toHaveBeenCalledWith(mockSession, userId);
         });
+    });
+    (0, vitest_1.it)('should work with graphql', async () => {
+        let TestResolver = class TestResolver {
+            protectedQuery() {
+                return 'protected data';
+            }
+            publicQuery() {
+                return 'public data';
+            }
+        };
+        __decorate([
+            (0, graphql_1.Query)(() => String),
+            __metadata("design:type", Function),
+            __metadata("design:paramtypes", []),
+            __metadata("design:returntype", String)
+        ], TestResolver.prototype, "protectedQuery", null);
+        __decorate([
+            (0, decorators_1.PublicAccess)(),
+            (0, graphql_1.Query)(() => String),
+            __metadata("design:type", Function),
+            __metadata("design:paramtypes", []),
+            __metadata("design:returntype", String)
+        ], TestResolver.prototype, "publicQuery", null);
+        TestResolver = __decorate([
+            (0, graphql_1.Resolver)()
+        ], TestResolver);
+        let GQLExceptionFilter = class GQLExceptionFilter {
+            constructor() {
+                this.handler = (0, fastify_1.errorHandler)();
+            }
+            catch(exception, host) {
+                const gqlHost = graphql_1.GqlArgumentsHost.create(host);
+                const ctx = gqlHost.getContext();
+                return new graphql_2.GraphQLError(exception.message, {
+                    extensions: {
+                        code: 401,
+                        statusCode: 401,
+                    },
+                });
+            }
+        };
+        GQLExceptionFilter = __decorate([
+            (0, common_1.Catch)(supertokens_node_1.Error),
+            __metadata("design:paramtypes", [])
+        ], GQLExceptionFilter);
+        function contextDataExtractor(ctx) {
+            const gqlContext = graphql_1.GqlExecutionContext.create(ctx);
+            const contextObject = gqlContext.getContext();
+            return {
+                request: contextObject.req,
+                response: contextObject.res,
+            };
+        }
+        const moduleRef = await testing_1.Test.createTestingModule({
+            imports: [
+                supertokens_module_1.SuperTokensModule.forRoot({
+                    framework: 'express',
+                    supertokens: {
+                        connectionURI: connectionUri,
+                    },
+                    appInfo: AppInfo,
+                    recipeList: [session_1.default.init(), emailpassword_1.default.init()],
+                }),
+                graphql_1.GraphQLModule.forRoot({
+                    autoSchemaFile: true,
+                    context: ({ req, res }) => {
+                        return { req, res };
+                    },
+                    driver: apollo_1.ApolloDriver,
+                }),
+            ],
+            providers: [
+                TestResolver,
+                {
+                    provide: core_1.APP_GUARD,
+                    useFactory: () => {
+                        return new supertokens_auth_guard_1.SuperTokensAuthGuard(contextDataExtractor);
+                    },
+                },
+            ],
+        }).compile();
+        const app = moduleRef.createNestApplication();
+        app.useGlobalFilters(new GQLExceptionFilter());
+        await app.init();
+        await app.listen(0);
+        const protectedQuery = `
+      query {
+        protectedQuery
+      }
+    `;
+        await (0, supertest_1.default)(app.getHttpServer())
+            .post('/graphql')
+            .send({ query: protectedQuery })
+            .expect((res) => {
+            (0, vitest_1.expect)(res.body.errors.length).toBeGreaterThan(0);
+        });
+        const publicQuery = `
+      query {
+        publicQuery
+      }
+    `;
+        const response = await (0, supertest_1.default)(app.getHttpServer())
+            .post('/graphql')
+            .send({ query: publicQuery })
+            .expect((res) => {
+            (0, vitest_1.expect)(res.body.errors).toBeUndefined();
+        });
+        (0, vitest_1.expect)(response.body.data.publicQuery).toBe('public data');
+        await app.close();
     });
 });

@@ -9,7 +9,6 @@
     "start:express": "(cd ./examples/react-frontend && npm run start) & (cd ./examples/express-backend && npm run start) & wait",
     "start:fastify": "(cd ./examples/react-frontend && npm run start) & (cd ./examples/fastify-backend && npm run start) & wait",
     "start:graphql": "(cd ./examples/react-frontend && npm run start) & (cd ./examples/graphql-backend && npm run start) & wait",
-    "start:graphql-yoga": "(cd ./examples/react-frontend && npm run start) & (cd ./examples/graphql-yoga-backend && npm run start) & wait",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -54,15 +53,15 @@
     }
   },
   "devDependencies": {
+    "@nestjs/apollo": "^13.0.4",
+    "@nestjs/graphql": "^13.0.4",
     "@nestjs/platform-express": "^11.0.7",
     "@nestjs/testing": "^11.0.7",
+    "@types/supertest": "^6.0.3",
     "npm-run-all": "^4.1.5",
     "rimraf": "^6.0.1",
     "supertest": "^7.0.0",
     "typescript": "^5.7.3",
     "vitest": "^3.0.4"
-  },
-  "dependencies": {
-    "express": "^4.21.2"
   }
 }

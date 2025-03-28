@@ -1,8 +1,11 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const vitest_1 = require("vitest");
 const testing_1 = require("@nestjs/testing");
-const session_1 = require("supertokens-node/recipe/session");
+const session_1 = __importDefault(require("supertokens-node/recipe/session"));
 const supertokens_module_1 = require("./supertokens.module");
 const AppInfo = {
     appName: 'ST',

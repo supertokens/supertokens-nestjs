@@ -1,7 +1,7 @@
-import { Module } from '@nestjs/common'
+import { ExecutionContext, Module } from '@nestjs/common'
 import { APP_GUARD } from '@nestjs/core'
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo'
-import { GraphQLModule } from '@nestjs/graphql'
+import { GqlExecutionContext, GraphQLModule } from '@nestjs/graphql'
 import { DirectiveLocation, GraphQLDirective } from 'graphql'
 
 import { ProductsModule } from './products/products.module'
@@ -9,6 +9,15 @@ import { ProductsModule } from './products/products.module'
 import { SuperTokensModule, SuperTokensAuthGuard } from 'supertokens-nestjs'
 
 import { appInfo, connectionURI, recipeList } from './config'
+
+function contextDataExtractor(ctx: ExecutionContext) {
+  const gqlContext = GqlExecutionContext.create(ctx)
+  const contextObject = gqlContext.getContext()
+  return {
+    request: contextObject.req,
+    response: contextObject.res,
+  }
+}
 
 @Module({
   imports: [
@@ -26,6 +35,9 @@ import { appInfo, connectionURI, recipeList } from './config'
       driver: ApolloDriver,
       autoSchemaFile: 'src/schema.gql',
       installSubscriptionHandlers: true,
+      context: ({ req, res }) => {
+        return { req, res }
+      },
       buildSchemaOptions: {
         directives: [
           new GraphQLDirective({
@@ -39,7 +51,9 @@ import { appInfo, connectionURI, recipeList } from './config'
   providers: [
     {
       provide: APP_GUARD,
-      useClass: SuperTokensAuthGuard,
+      useFactory: () => {
+        return new SuperTokensAuthGuard(contextDataExtractor)
+      },
     },
   ],
 })

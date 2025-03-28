@@ -8,13 +8,16 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const vitest_1 = require("vitest");
 const common_1 = require("@nestjs/common");
-const supertest_1 = require("supertest");
+const supertest_1 = __importDefault(require("supertest"));
 const testing_1 = require("@nestjs/testing");
-const session_1 = require("supertokens-node/recipe/session");
-const emailpassword_1 = require("supertokens-node/recipe/emailpassword");
+const session_1 = __importDefault(require("supertokens-node/recipe/session"));
+const emailpassword_1 = __importDefault(require("supertokens-node/recipe/emailpassword"));
 const supertokens_module_1 = require("./supertokens.module");
 const supertokens_auth_guard_1 = require("./supertokens-auth.guard");
 const supertokens_exception_filter_1 = require("./supertokens-exception.filter");
