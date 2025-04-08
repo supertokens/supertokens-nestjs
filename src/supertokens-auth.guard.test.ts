@@ -8,7 +8,16 @@ import {
   beforeEach,
   Mock,
 } from 'vitest'
-import { Controller, Get, INestApplication, UseGuards } from '@nestjs/common'
+import {
+  ArgumentsHost,
+  Catch,
+  Controller,
+  ExceptionFilter,
+  ExecutionContext,
+  Get,
+  INestApplication,
+  UseGuards,
+} from '@nestjs/common'
 import request from 'supertest'
 import { Test } from '@nestjs/testing'
 import Session from 'supertokens-node/recipe/session'
@@ -16,6 +25,16 @@ import EmailPassword from 'supertokens-node/recipe/emailpassword'
 import UserRoles from 'supertokens-node/recipe/userroles'
 import { EmailVerificationClaim } from 'supertokens-node/recipe/emailverification'
 import { MultiFactorAuthClaim } from 'supertokens-node/recipe/multifactorauth'
+import {
+  Resolver,
+  Query,
+  GqlExecutionContext,
+  GraphQLModule,
+  GqlArgumentsHost,
+} from '@nestjs/graphql'
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo'
+import { Error as STError } from 'supertokens-node'
+import { GraphQLError } from 'graphql'
 
 import { SuperTokensModule } from './supertokens.module'
 import { SuperTokensAuthGuard } from './supertokens-auth.guard'
@@ -26,6 +45,7 @@ import {
   PublicAccess,
   VerifySession,
 } from './decorators'
+import { errorHandler } from 'supertokens-node/framework/fastify'
 
 const AppInfo = {
   appName: 'ST',
@@ -75,7 +95,7 @@ describe('SuperTokensAuthGuard', () => {
 
     app.useGlobalFilters(new SuperTokensExceptionFilter())
     await app.init()
-    // This is required so that the filtes get applied
+    // This is required so that the filters get applied
     await app.listen(0)
     await request(app.getHttpServer()).get(`/`).expect(200)
     await request(app.getHttpServer()).get(`/protected`).expect(401)
@@ -361,5 +381,116 @@ describe('SuperTokensAuthGuard', () => {
       expect(getSession).toHaveBeenCalledTimes(1)
       expect(checkSessionDecoratorFn).toHaveBeenCalledWith(mockSession, userId)
     })
+  })
+
+  it('should work with graphql', async () => {
+    @Resolver()
+    class TestResolver {
+      @Query(() => String)
+      protectedQuery(): string {
+        return 'protected data'
+      }
+
+      @PublicAccess()
+      @Query(() => String)
+      publicQuery(): string {
+        return 'public data'
+      }
+    }
+
+    @Catch(STError)
+    class GQLExceptionFilter implements ExceptionFilter {
+      handler: ReturnType<typeof errorHandler>
+
+      constructor() {
+        this.handler = errorHandler()
+      }
+
+      catch(exception: Error, host: ArgumentsHost) {
+        const gqlHost = GqlArgumentsHost.create(host)
+        const ctx = gqlHost.getContext()
+
+        return new GraphQLError(exception.message, {
+          extensions: {
+            code: 401,
+            statusCode: 401,
+          },
+        })
+      }
+    }
+
+    function contextDataExtractor(ctx: ExecutionContext) {
+      const gqlContext = GqlExecutionContext.create(ctx)
+      const contextObject = gqlContext.getContext()
+      return {
+        request: contextObject.req,
+        response: contextObject.res,
+      }
+    }
+
+    const moduleRef = await Test.createTestingModule({
+      imports: [
+        SuperTokensModule.forRoot({
+          framework: 'express',
+          supertokens: {
+            connectionURI: connectionUri,
+          },
+          appInfo: AppInfo,
+          recipeList: [Session.init(), EmailPassword.init()],
+        }),
+        GraphQLModule.forRoot<ApolloDriverConfig>({
+          autoSchemaFile: true,
+          context: ({ req, res }) => {
+            return { req, res }
+          },
+          driver: ApolloDriver,
+        }),
+      ],
+      providers: [
+        TestResolver,
+        {
+          provide: APP_GUARD,
+          useFactory: () => {
+            return new SuperTokensAuthGuard(contextDataExtractor)
+          },
+        },
+      ],
+    }).compile()
+
+    const app = moduleRef.createNestApplication()
+
+    app.useGlobalFilters(new GQLExceptionFilter())
+    await app.init()
+
+    // This is required so that the filtes get applied
+    await app.listen(0)
+
+    const protectedQuery = `
+      query {
+        protectedQuery
+      }
+    `
+    await request(app.getHttpServer())
+      .post('/graphql')
+      .send({ query: protectedQuery })
+      .expect((res) => {
+        expect(res.body.errors.length).toBeGreaterThan(0)
+      })
+
+    const publicQuery = `
+      query {
+        publicQuery
+      }
+    `
+    const response = await request(app.getHttpServer())
+      .post('/graphql')
+      .send({ query: publicQuery })
+      .expect((res) => {
+        expect(res.body.errors).toBeUndefined()
+      })
+
+    expect(response.body.data.publicQuery).toBe('public data')
+
+    await app.close()
   })
 })

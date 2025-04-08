@@ -7,6 +7,8 @@ import { ProductsService } from './products.service'
 
 import { PublicAccess, Session, VerifySession } from 'supertokens-nestjs'
 
+import { GqlExecutionContext } from '@nestjs/graphql'
+
 const pubSub = new PubSub()
 
 @Resolver((of) => Product)

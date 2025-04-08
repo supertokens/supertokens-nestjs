@@ -3,6 +3,7 @@ import {
   OptionalFactoryDependency,
   ModuleMetadata,
   Type,
+  ExecutionContext,
 } from '@nestjs/common'
 
 import {
@@ -11,6 +12,7 @@ import {
 } from 'supertokens-node/recipe/session'
 import { FastifyAdapter } from '@nestjs/platform-fastify'
 import { TypeInput } from 'supertokens-node/types'
+import { ExecutionContextHost } from '@nestjs/core/helpers/execution-context-host'
 
 export type SuperTokensModuleOptions = TypeInput & {
   framework: 'express' | 'fastify'
@@ -42,4 +44,9 @@ export type VerifySessionDecoratorOptions = {
   permissions?: string[]
   requireEmailVerification?: boolean
   requireMFA?: boolean
+}
+
+export type ContextDataExtractor = (ctx: ExecutionContext) => {
+  request: any
+  response: any
 }

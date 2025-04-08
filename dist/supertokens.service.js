@@ -11,10 +11,13 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SuperTokensService = void 0;
 const common_1 = require("@nestjs/common");
-const supertokens_node_1 = require("supertokens-node");
+const supertokens_node_1 = __importDefault(require("supertokens-node"));
 const supertokens_constants_1 = require("./supertokens.constants");
 const fastify_1 = require("supertokens-node/framework/fastify");
 let SuperTokensService = class SuperTokensService {

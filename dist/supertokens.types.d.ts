@@ -1,4 +1,4 @@
-import { InjectionToken, OptionalFactoryDependency, ModuleMetadata, Type } from '@nestjs/common';
+import { InjectionToken, OptionalFactoryDependency, ModuleMetadata, Type, ExecutionContext } from '@nestjs/common';
 import { VerifySessionOptions, getSession } from 'supertokens-node/recipe/session';
 import { FastifyAdapter } from '@nestjs/platform-fastify';
 import { TypeInput } from 'supertokens-node/types';
@@ -23,4 +23,8 @@ export type VerifySessionDecoratorOptions = {
     permissions?: string[];
     requireEmailVerification?: boolean;
     requireMFA?: boolean;
+};
+export type ContextDataExtractor = (ctx: ExecutionContext) => {
+    request: any;
+    response: any;
 };

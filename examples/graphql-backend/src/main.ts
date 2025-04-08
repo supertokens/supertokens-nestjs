@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core'
 import { AppModule } from './app.module'
 import supertokens from 'supertokens-node'
 import { SuperTokensExceptionFilter } from 'supertokens-nestjs'
+import { AppExceptionFilter } from './app.exception-filter'
 
 import { appInfo } from './config'
 
@@ -12,7 +13,7 @@ async function bootstrap() {
     allowedHeaders: ['content-type', ...supertokens.getAllCORSHeaders()],
     credentials: true,
   })
-  app.useGlobalFilters(new SuperTokensExceptionFilter())
+  app.useGlobalFilters(new AppExceptionFilter())
 
   await app.listen(3001)
 }

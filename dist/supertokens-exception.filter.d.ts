@@ -1,7 +1,7 @@
-import { ExceptionFilter, ArgumentsHost } from "@nestjs/common";
-import { ErrorRequestHandler } from "express";
+import { ExceptionFilter, ArgumentsHost } from '@nestjs/common';
+import { errorHandler } from 'supertokens-node/framework/express';
 export declare class SuperTokensExceptionFilter implements ExceptionFilter {
-    handler: ErrorRequestHandler;
+    handler: ReturnType<typeof errorHandler>;
     constructor();
     catch(exception: Error, host: ArgumentsHost): void;
 }

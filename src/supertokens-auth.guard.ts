@@ -9,27 +9,41 @@ import {
 import { EmailVerificationClaim } from 'supertokens-node/recipe/emailverification'
 import { MultiFactorAuthClaim } from 'supertokens-node/recipe/multifactorauth'
 import { VerifySession, PublicAccess } from './decorators'
+import { ContextDataExtractor } from './supertokens.types'
 
 @Injectable()
 export class SuperTokensAuthGuard implements CanActivate {
   private reflector: Reflector
-  constructor() {
+  private customCtxDataExtractor?: ContextDataExtractor
+
+  constructor(extractDataFromConext?: ContextDataExtractor) {
     this.reflector = new Reflector()
+    this.customCtxDataExtractor = extractDataFromConext
   }
 
   public async canActivate(context: ExecutionContext): Promise<boolean> {
     const isPublic = this.reflector.get(PublicAccess, context.getHandler())
+
     if (isPublic) return true
 
-    const ctx = context.switchToHttp()
-    const req = ctx.getRequest()
-    const resp = ctx.getResponse()
-
+    const { request, response } = this.extractDataFromContext(context)
     const verifySessionOptions = this.getVerifySessionOptions(context)
 
-    const session = await getSession(req, resp, verifySessionOptions)
-    req.session = session
+    const session = await getSession(request, response, verifySessionOptions)
+
+    request.session = session
     return true
+  }
+
+  private extractDataFromContext(context: ExecutionContext) {
+    if (this.customCtxDataExtractor) {
+      return this.customCtxDataExtractor(context)
+    }
+    const ctx = context.switchToHttp()
+    const request = ctx.getRequest()
+    const response = ctx.getResponse()
+
+    return { request, response }
   }
 
   private getVerifySessionOptions(
@@ -39,6 +53,7 @@ export class SuperTokensAuthGuard implements CanActivate {
       VerifySession,
       context.getHandler(),
     )
+
     const {
       roles,
       permissions,
@@ -85,6 +100,7 @@ export class SuperTokensAuthGuard implements CanActivate {
           (validator) => !validatorsToRemove.includes(validator.id),
         )
       }
+
       return [...parsedValidators, ...extraClaimValidators]
     }
 
