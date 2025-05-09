@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.0.2 (2025-05-09)
+
+### Changes
+
+- Removed `express` dependency
+- Fixed usage with `graphql`
+
 ## 0.0.1 (2025-03-05)
 
 ### Changes
@@ -10,4 +17,3 @@
 - User roles and permissions
 - Email verification
 - Multi-factor authentication
-
