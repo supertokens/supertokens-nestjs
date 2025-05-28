@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.3 (2025-05-29)
+
+### Changes
+
+- Updated `supertokens-node` to `22.1.0`
+
 ## 0.0.2 (2025-05-09)
 
 ### Changes
