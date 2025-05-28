@@ -4,7 +4,7 @@
 
 ### Changes
 
-- Updated `supertokens-node` to `22.1.0`
++- Added support for `supertokens-node` version `22.1.0` while maintaining compatibility with `21.1.0`
 
 ## 0.0.2 (2025-05-09)
 
