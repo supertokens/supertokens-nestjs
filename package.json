@@ -1,6 +1,6 @@
 {
   "name": "supertokens-nestjs",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "SuperTokens integration for NestJS applications",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
