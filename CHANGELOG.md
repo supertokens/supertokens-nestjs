@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.5 (2025-06-09)
+
+### Changes
+
+- Prevent dependency errors from being thrown when the auth guard is instantiated
+
 ## 0.0.4 (2025-05-29)
 
 ### Changes
