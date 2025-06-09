@@ -1,4 +1,9 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common'
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  Optional,
+} from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import UserRoles from 'supertokens-node/recipe/userroles'
 import {
@@ -16,7 +21,7 @@ export class SuperTokensAuthGuard implements CanActivate {
   private reflector: Reflector
   private customCtxDataExtractor?: ContextDataExtractor
 
-  constructor(extractDataFromConext?: ContextDataExtractor) {
+  constructor(@Optional() extractDataFromConext?: ContextDataExtractor) {
     this.reflector = new Reflector()
     this.customCtxDataExtractor = extractDataFromConext
   }
