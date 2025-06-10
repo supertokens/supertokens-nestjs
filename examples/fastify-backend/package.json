@@ -26,7 +26,7 @@
     "@nestjs/platform-fastify": "^11.0.7",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
-    "supertokens-nestjs": "^0.0.2"
+    "supertokens-nestjs": "latest"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
