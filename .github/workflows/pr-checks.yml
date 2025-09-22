@@ -1,8 +1,6 @@
-name: CI
+name: PR Checks
 
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
 
@@ -24,7 +22,7 @@ jobs:
       - name: Install Dependencies
         run: |
           npm ci --include=optional
-          # Ensure Rollup platform binaries are available
+          # https://github.com/npm/cli/issues/4828
           npm install --no-save @rollup/rollup-linux-x64-gnu
 
       - name: Build
@@ -34,4 +32,3 @@ jobs:
         run: npm test
         env:
           VITE_ST_CONNECTION_URI: https://try.supertokens.io
-
