@@ -16,42 +16,22 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 18.x
+      - name: Setup Node.js 20.x
         uses: actions/setup-node@v4
         with:
-          node-version: 18.x
+          node-version: 20.x
 
       - name: Install Dependencies
-        run: npm ci
+        run: |
+          npm ci --include=optional
+          # Ensure Rollup platform binaries are available
+          npm install --no-save @rollup/rollup-linux-x64-gnu
 
       - name: Build
         run: npm run build
 
       - name: Run Tests
         run: npm test
-
-  release:
-    name: Release
-    runs-on: ubuntu-latest
-    needs: build
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js 18.x
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18.x
-
-      - name: Install Dependencies
-        run: npm ci
-
-      - name: Create Release Pull Request or Publish to npm
-        id: changesets
-        uses: changesets/action@v1
-        with:
-          publish: npm run release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          VITE_ST_CONNECTION_URI: https://try.supertokens.io
+
