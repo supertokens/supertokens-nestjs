@@ -45,7 +45,7 @@
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/platform-fastify": "^11.0.6",
-    "supertokens-node": "^21.1.0 || ^22.1.0"
+    "supertokens-node": "^23.0.0"
   },
   "peerDependenciesMeta": {
     "@nestjs/platform-express": {
