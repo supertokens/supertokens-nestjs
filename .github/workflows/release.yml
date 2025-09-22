@@ -27,7 +27,7 @@ jobs:
       - name: Install Dependencies
         run: |
           npm ci --include=optional
-          # Ensure Rollup platform binaries are available
+          # https://github.com/npm/cli/issues/4828
           npm install --no-save @rollup/rollup-linux-x64-gnu
 
       - name: Build
@@ -41,6 +41,8 @@ jobs:
         uses: changesets/action@v1
         with:
           publish: npm run release
+          commit: 'chore: Version package'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+

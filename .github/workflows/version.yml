@@ -28,5 +28,6 @@ jobs:
         with:
           version: npm run version
           title: 'Update package versions'
+          commit: 'chore: Version package'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
