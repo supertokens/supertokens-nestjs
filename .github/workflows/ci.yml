@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  build:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+
+      - name: Install Dependencies
+        run: |
+          npm ci --include=optional
+          # Ensure Rollup platform binaries are available
+          npm install --no-save @rollup/rollup-linux-x64-gnu
+
+      - name: Build
+        run: npm run build
+
+      - name: Run Tests
+        run: npm test
+        env:
+          VITE_ST_CONNECTION_URI: https://try.supertokens.io
+

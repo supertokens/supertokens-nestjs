@@ -10,7 +10,11 @@
     "start:fastify": "(cd ./examples/react-frontend && npm run start) & (cd ./examples/fastify-backend && npm run start) & wait",
     "start:graphql": "(cd ./examples/react-frontend && npm run start) & (cd ./examples/graphql-backend && npm run start) & wait",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "release": "npm run build && changeset publish",
+    "prepare": "husky"
   },
   "repository": {
     "type": "git",
@@ -42,7 +46,7 @@
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/platform-fastify": "^11.0.6",
-    "supertokens-node": "^21.1.0 || ^22.1.0"
+    "supertokens-node": "^23.0.0"
   },
   "peerDependenciesMeta": {
     "@nestjs/platform-express": {
@@ -53,11 +57,15 @@
     }
   },
   "devDependencies": {
+    "@changesets/cli": "^2.29.7",
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
     "@nestjs/apollo": "^13.0.4",
     "@nestjs/graphql": "^13.0.4",
     "@nestjs/platform-express": "^11.0.7",
     "@nestjs/testing": "^11.0.7",
     "@types/supertest": "^6.0.3",
+    "husky": "^9.1.7",
     "npm-run-all": "^4.1.5",
     "rimraf": "^6.0.1",
     "supertest": "^7.0.0",
