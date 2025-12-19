@@ -21,9 +21,9 @@ export class SuperTokensAuthGuard implements CanActivate {
   private reflector: Reflector
   private customCtxDataExtractor?: ContextDataExtractor
 
-  constructor(@Optional() extractDataFromConext?: ContextDataExtractor) {
+  constructor(@Optional() extractDataFromContext?: ContextDataExtractor) {
     this.reflector = new Reflector()
-    this.customCtxDataExtractor = extractDataFromConext
+    this.customCtxDataExtractor = extractDataFromContext
   }
 
   public async canActivate(context: ExecutionContext): Promise<boolean> {
