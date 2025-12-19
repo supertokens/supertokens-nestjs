@@ -27,7 +27,10 @@ export class SuperTokensAuthGuard implements CanActivate {
   }
 
   public async canActivate(context: ExecutionContext): Promise<boolean> {
-    const isPublic = this.reflector.get(PublicAccess, context.getHandler())
+    const isPublic = this.reflector.getAllAndOverride<boolean>(PublicAccess, [
+      context.getHandler(),
+      context.getClass(),
+    ])
 
     if (isPublic) return true
 
