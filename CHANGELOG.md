@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.0.0
+
+### Major Changes
+
+- 1805c83: Update the supertokens-node dependency version
+- 5d98dda: Update supertokens-node peer dependency
+
+### Minor Changes
+
+- a86cd83: feat: Add support for the PublicAccess decorator on controllers
+
 ## 0.0.5 (2025-06-09)
 
 ### Changes
