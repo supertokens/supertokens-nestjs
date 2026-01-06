@@ -302,6 +302,49 @@ describe('SuperTokensAuthGuard', () => {
       await request(app.getHttpServer()).get(`/`).expect(200)
       await request(app.getHttpServer()).get(`/protected`).expect(401)
     })
+    it('PublicAccess on controller', async () => {
+      @Controller('/public-controller')
+      @PublicAccess()
+      class PublicController {
+        @Get('/route1')
+        getPublicRoute1() {
+          return 'controller public'
+        }
+
+        @Get('/route2')
+        getPublicRoute2() {
+          return 'controller protected'
+        }
+      }
+
+      const moduleRef = await Test.createTestingModule({
+        imports: [
+          SuperTokensModule.forRoot({
+            framework: 'express',
+            supertokens: {
+              connectionURI: connectionUri,
+            },
+            appInfo: AppInfo,
+            recipeList: [Session.init(), EmailPassword.init()],
+          }),
+        ],
+        controllers: [PublicController],
+      }).compile()
+
+      const app = moduleRef.createNestApplication()
+      app.useGlobalFilters(new SuperTokensExceptionFilter())
+      await app.init()
+      await app.listen(0)
+
+      await request(app.getHttpServer())
+        .get(`/public-controller/route1`)
+        .expect(200)
+      await request(app.getHttpServer())
+        .get(`/public-controller/route2`)
+        .expect(200)
+
+      await app.close()
+    })
 
     it('VerifySession', async () => {
       await request(app.getHttpServer()).get(`/protected`)

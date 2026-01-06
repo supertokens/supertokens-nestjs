@@ -6,6 +6,7 @@ import { AppController } from './app.controller'
 import { SuperTokensModule, SuperTokensAuthGuard } from 'supertokens-nestjs'
 
 import { appInfo, connectionURI, recipeList } from './config'
+import { HealthController } from './health.controller'
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { appInfo, connectionURI, recipeList } from './config'
       recipeList,
     }),
   ],
-  controllers: [AppController],
+  controllers: [AppController, HealthController],
   providers: [
     {
       provide: APP_GUARD,
