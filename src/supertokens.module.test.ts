@@ -13,7 +13,7 @@ const AppInfo = {
 }
 
 // @ts-expect-error
-const connectionUri = import.meta.env.VITE_ST_CONNECTION_URI
+const connectionUri = import.meta.env.VITE_ST_CONNECTION_URI || "http://localhost:4356"
 
 describe('SuperTokensModule', () => {
   beforeAll(async () => {})

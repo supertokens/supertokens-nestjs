@@ -11,6 +11,11 @@ on:
 
 jobs:
   release:
+    # This job marks the version as a release version and creates tags.
+    # Binding this to the publish env to require approvals before run.
+    # Further jobs are follow-ups to the release and are not required to be approved once release is approved.
+    environment: publish
+
     name: Release
     runs-on: ubuntu-latest
     steps:
