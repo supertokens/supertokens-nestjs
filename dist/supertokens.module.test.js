@@ -14,7 +14,7 @@ const AppInfo = {
     apiBasePath: '/auth',
     websiteBasePath: '/auth',
 };
-const connectionUri = import.meta.env.VITE_ST_CONNECTION_URI;
+const connectionUri = import.meta.env.VITE_ST_CONNECTION_URI || "http://localhost:4356";
 (0, vitest_1.describe)('SuperTokensModule', () => {
     (0, vitest_1.beforeAll)(async () => { });
     (0, vitest_1.it)('should initialize with forRoot', async () => {

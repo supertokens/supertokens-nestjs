@@ -3,7 +3,7 @@ import { Error as STError } from 'supertokens-node'
 import { errorHandler } from 'supertokens-node/framework/express'
 
 @Catch(STError)
-export class SuperTokensExceptionFilter implements ExceptionFilter {
+export class SuperTokensExpressExceptionFilter implements ExceptionFilter {
   handler: ReturnType<typeof errorHandler>
 
   constructor() {

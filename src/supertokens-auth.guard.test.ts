@@ -38,7 +38,7 @@ import { GraphQLError } from 'graphql'
 
 import { SuperTokensModule } from './supertokens.module'
 import { SuperTokensAuthGuard } from './supertokens-auth.guard'
-import { SuperTokensExceptionFilter } from './supertokens-exception.filter'
+import { SuperTokensExpressExceptionFilter } from './supertokens-express-exception.filter'
 import { APP_GUARD } from '@nestjs/core'
 import {
   Session as SessionParamDecorator,
@@ -93,7 +93,7 @@ describe('SuperTokensAuthGuard', () => {
 
     const app = moduleRef.createNestApplication()
 
-    app.useGlobalFilters(new SuperTokensExceptionFilter())
+    app.useGlobalFilters(new SuperTokensExpressExceptionFilter())
     await app.init()
     // This is required so that the filters get applied
     await app.listen(0)
@@ -133,7 +133,7 @@ describe('SuperTokensAuthGuard', () => {
 
     const app = moduleRef.createNestApplication()
 
-    app.useGlobalFilters(new SuperTokensExceptionFilter())
+    app.useGlobalFilters(new SuperTokensExpressExceptionFilter())
     await app.init()
     // This is required so that the filtes get applied
     await app.listen(0)
@@ -181,7 +181,7 @@ describe('SuperTokensAuthGuard', () => {
 
     const app = moduleRef.createNestApplication()
 
-    app.useGlobalFilters(new SuperTokensExceptionFilter())
+    app.useGlobalFilters(new SuperTokensExpressExceptionFilter())
     await app.init()
     // This is required so that the filtes get applied
     await app.listen(0)
@@ -282,7 +282,7 @@ describe('SuperTokensAuthGuard', () => {
       app = moduleRef.createNestApplication()
       guard = moduleRef.get(SuperTokensAuthGuard)
 
-      app.useGlobalFilters(new SuperTokensExceptionFilter())
+      app.useGlobalFilters(new SuperTokensExpressExceptionFilter())
       await app.init()
       // This is required so that the filtes get applied
       await app.listen(0)
@@ -332,7 +332,7 @@ describe('SuperTokensAuthGuard', () => {
       }).compile()
 
       const app = moduleRef.createNestApplication()
-      app.useGlobalFilters(new SuperTokensExceptionFilter())
+      app.useGlobalFilters(new SuperTokensExpressExceptionFilter())
       await app.init()
       await app.listen(0)
 

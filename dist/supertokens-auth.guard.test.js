@@ -30,7 +30,7 @@ const supertokens_node_1 = require("supertokens-node");
 const graphql_2 = require("graphql");
 const supertokens_module_1 = require("./supertokens.module");
 const supertokens_auth_guard_1 = require("./supertokens-auth.guard");
-const supertokens_exception_filter_1 = require("./supertokens-exception.filter");
+const supertokens_express_exception_filter_1 = require("./supertokens-express-exception.filter");
 const core_1 = require("@nestjs/core");
 const decorators_1 = require("./decorators");
 const fastify_1 = require("supertokens-node/framework/fastify");
@@ -41,7 +41,7 @@ const AppInfo = {
     apiBasePath: '/auth',
     websiteBasePath: '/auth',
 };
-const connectionUri = import.meta.env.VITE_ST_CONNECTION_URI;
+const connectionUri = import.meta.env.VITE_ST_CONNECTION_URI || "http://localhost:4356";
 const getSession = session_1.default.getSession;
 vitest_1.vi.mock('supertokens-node/recipe/session', { spy: true });
 (0, vitest_1.describe)('SuperTokensAuthGuard', () => {
@@ -84,7 +84,7 @@ vitest_1.vi.mock('supertokens-node/recipe/session', { spy: true });
             controllers: [TestController],
         }).compile();
         const app = moduleRef.createNestApplication();
-        app.useGlobalFilters(new supertokens_exception_filter_1.SuperTokensExceptionFilter());
+        app.useGlobalFilters(new supertokens_express_exception_filter_1.SuperTokensExpressExceptionFilter());
         await app.init();
         await app.listen(0);
         await (0, supertest_1.default)(app.getHttpServer()).get(`/`).expect(200);
@@ -130,7 +130,7 @@ vitest_1.vi.mock('supertokens-node/recipe/session', { spy: true });
             controllers: [TestController],
         }).compile();
         const app = moduleRef.createNestApplication();
-        app.useGlobalFilters(new supertokens_exception_filter_1.SuperTokensExceptionFilter());
+        app.useGlobalFilters(new supertokens_express_exception_filter_1.SuperTokensExpressExceptionFilter());
         await app.init();
         await app.listen(0);
         await (0, supertest_1.default)(app.getHttpServer()).get(`/`).expect(401);
@@ -186,7 +186,7 @@ vitest_1.vi.mock('supertokens-node/recipe/session', { spy: true });
             ],
         }).compile();
         const app = moduleRef.createNestApplication();
-        app.useGlobalFilters(new supertokens_exception_filter_1.SuperTokensExceptionFilter());
+        app.useGlobalFilters(new supertokens_express_exception_filter_1.SuperTokensExpressExceptionFilter());
         await app.init();
         await app.listen(0);
         await (0, supertest_1.default)(app.getHttpServer()).get(`/first/`).expect(401);
@@ -323,7 +323,7 @@ vitest_1.vi.mock('supertokens-node/recipe/session', { spy: true });
             }).compile();
             app = moduleRef.createNestApplication();
             guard = moduleRef.get(supertokens_auth_guard_1.SuperTokensAuthGuard);
-            app.useGlobalFilters(new supertokens_exception_filter_1.SuperTokensExceptionFilter());
+            app.useGlobalFilters(new supertokens_express_exception_filter_1.SuperTokensExpressExceptionFilter());
             await app.init();
             await app.listen(0);
         });
@@ -338,6 +338,56 @@ vitest_1.vi.mock('supertokens-node/recipe/session', { spy: true });
         (0, vitest_1.it)('PublicAccess', async () => {
             await (0, supertest_1.default)(app.getHttpServer()).get(`/`).expect(200);
             await (0, supertest_1.default)(app.getHttpServer()).get(`/protected`).expect(401);
+        });
+        (0, vitest_1.it)('PublicAccess on controller', async () => {
+            let PublicController = class PublicController {
+                getPublicRoute1() {
+                    return 'controller public';
+                }
+                getPublicRoute2() {
+                    return 'controller protected';
+                }
+            };
+            __decorate([
+                (0, common_1.Get)('/route1'),
+                __metadata("design:type", Function),
+                __metadata("design:paramtypes", []),
+                __metadata("design:returntype", void 0)
+            ], PublicController.prototype, "getPublicRoute1", null);
+            __decorate([
+                (0, common_1.Get)('/route2'),
+                __metadata("design:type", Function),
+                __metadata("design:paramtypes", []),
+                __metadata("design:returntype", void 0)
+            ], PublicController.prototype, "getPublicRoute2", null);
+            PublicController = __decorate([
+                (0, common_1.Controller)('/public-controller'),
+                (0, decorators_1.PublicAccess)()
+            ], PublicController);
+            const moduleRef = await testing_1.Test.createTestingModule({
+                imports: [
+                    supertokens_module_1.SuperTokensModule.forRoot({
+                        framework: 'express',
+                        supertokens: {
+                            connectionURI: connectionUri,
+                        },
+                        appInfo: AppInfo,
+                        recipeList: [session_1.default.init(), emailpassword_1.default.init()],
+                    }),
+                ],
+                controllers: [PublicController],
+            }).compile();
+            const app = moduleRef.createNestApplication();
+            app.useGlobalFilters(new supertokens_express_exception_filter_1.SuperTokensExpressExceptionFilter());
+            await app.init();
+            await app.listen(0);
+            await (0, supertest_1.default)(app.getHttpServer())
+                .get(`/public-controller/route1`)
+                .expect(200);
+            await (0, supertest_1.default)(app.getHttpServer())
+                .get(`/public-controller/route2`)
+                .expect(200);
+            await app.close();
         });
         (0, vitest_1.it)('VerifySession', async () => {
             await (0, supertest_1.default)(app.getHttpServer()).get(`/protected`);

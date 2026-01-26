@@ -1,4 +1,5 @@
 export * from './supertokens.module';
-export * from './supertokens-exception.filter';
+export { SuperTokensExpressExceptionFilter, SuperTokensExpressExceptionFilter as SuperTokensExceptionFilter, } from './supertokens-express-exception.filter';
+export * from './supertokens-fastify-exception.filter';
 export * from './supertokens-auth.guard';
 export * from './decorators';

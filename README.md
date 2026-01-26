@@ -92,6 +92,7 @@ export class AppController {}
 
 ### 4. Add the CORS config and the exception filter in your `bootstrap` function
 
+For Express:
 ```ts
 import supertokens from 'supertokens-node'
 import { SuperTokensExceptionFilter } from 'supertokens-nestjs'
@@ -109,6 +110,9 @@ async function bootstrap() {
   await app.listen(3001)
 }
 ```
+
+For Fastify, use `SuperTokensFastifyExceptionFilter` instead of `SuperTokensExceptionFilter`.
+
 
 ### 5. Use the provided decorators to customize the route protection logic and access the authentication state
 

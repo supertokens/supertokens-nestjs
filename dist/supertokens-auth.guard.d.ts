@@ -3,7 +3,7 @@ import { ContextDataExtractor } from './supertokens.types';
 export declare class SuperTokensAuthGuard implements CanActivate {
     private reflector;
     private customCtxDataExtractor?;
-    constructor(extractDataFromConext?: ContextDataExtractor);
+    constructor(extractDataFromContext?: ContextDataExtractor);
     canActivate(context: ExecutionContext): Promise<boolean>;
     private extractDataFromContext;
     private getVerifySessionOptions;

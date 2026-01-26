@@ -7,7 +7,7 @@ import EmailPassword from 'supertokens-node/recipe/emailpassword'
 
 import { SuperTokensModule } from './supertokens.module'
 import { SuperTokensAuthGuard } from './supertokens-auth.guard'
-import { SuperTokensExceptionFilter } from './supertokens-exception.filter'
+import { SuperTokensExpressExceptionFilter } from './supertokens-express-exception.filter'
 
 const AppInfo = {
   appName: 'ST',
@@ -20,9 +20,9 @@ const AppInfo = {
 // @ts-expect-error
 const connectionUri = import.meta.env.VITE_ST_CONNECTION_URI || "http://localhost:4356"
 
-describe('SuperTokensExceptionFilter', () => {
+describe('SuperTokensExpressExceptionFilter', () => {
   let app: INestApplication
-  let exceptionFilter: SuperTokensExceptionFilter
+  let exceptionFilter: SuperTokensExpressExceptionFilter
 
   beforeAll(async () => {
     @Controller()
@@ -54,7 +54,7 @@ describe('SuperTokensExceptionFilter', () => {
 
     app = moduleRef.createNestApplication()
 
-    exceptionFilter = new SuperTokensExceptionFilter()
+    exceptionFilter = new SuperTokensExpressExceptionFilter()
     app.useGlobalFilters(exceptionFilter)
     await app.init()
     // This is required so that the filters get applied
