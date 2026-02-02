@@ -56,7 +56,8 @@ const AppInfo = {
 }
 
 // @ts-expect-error
-const connectionUri = import.meta.env.VITE_ST_CONNECTION_URI || "http://localhost:4356"
+const connectionUri =
+  import.meta.env.VITE_ST_CONNECTION_URI || 'http://localhost:4356'
 
 const getSession = Session.getSession as Mock<typeof getSession>
 vi.mock('supertokens-node/recipe/session', { spy: true })
@@ -256,12 +257,29 @@ describe('SuperTokensAuthGuard', () => {
         @Get('/disable-mfa')
         disableMFA() {}
 
+        @VerifySession({
+          requireMFA: true,
+          options: {
+            overrideGlobalClaimValidators: (globalValidators) => [
+              ...globalValidators,
+              EmailVerificationClaim.validators.isVerified(),
+            ],
+          },
+        })
+        @Get('/override-validators')
+        overrideValidators() {}
+
         @Get('/session-params')
         sessionParams(
           @SessionParamDecorator() session,
           @SessionParamDecorator('userId') userId,
         ) {
           checkSessionDecoratorFn(session, userId)
+        }
+
+        @Get('/session-missing')
+        sessionMissing(@SessionParamDecorator('userId') userId) {
+          return userId
         }
       }
 
@@ -414,6 +432,39 @@ describe('SuperTokensAuthGuard', () => {
         expect(validator.id).toBe(expectedValidators[index].id)
       }
     })
+    it('Auth[disableMFA]', async () => {
+      await request(app.getHttpServer()).get(`/disable-mfa`)
+      expect(getSession).toHaveBeenCalledTimes(1)
+      const [, , verifySessionOptions] = getSession.mock.lastCall
+      const mfaValidator =
+        MultiFactorAuthClaim.validators.hasCompletedMFARequirementsForAuth()
+      const emailValidator = EmailVerificationClaim.validators.isVerified()
+      const validators = [mfaValidator, emailValidator]
+      const actualValidators =
+        await verifySessionOptions.overrideGlobalClaimValidators(validators)
+      const ids = actualValidators.map((validator) => validator.id)
+      expect(ids).not.toContain(mfaValidator.id)
+      expect(ids).toContain(emailValidator.id)
+    })
+    it('Auth[overrideGlobalClaimValidators]', async () => {
+      await request(app.getHttpServer()).get(`/override-validators`)
+      expect(getSession).toHaveBeenCalledTimes(1)
+      const [, , verifySessionOptions] = getSession.mock.lastCall
+      const baseValidator = UserRoles.UserRoleClaim.validators.includesAll([
+        'admin',
+      ])
+      const emailValidator = EmailVerificationClaim.validators.isVerified()
+      const mfaValidator =
+        MultiFactorAuthClaim.validators.hasCompletedMFARequirementsForAuth()
+      const actualValidators =
+        await verifySessionOptions.overrideGlobalClaimValidators([
+          baseValidator,
+        ])
+      const ids = actualValidators.map((validator) => validator.id)
+      expect(ids).toContain(baseValidator.id)
+      expect(ids).toContain(emailValidator.id)
+      expect(ids).toContain(mfaValidator.id)
+    })
     it('Session', async () => {
       const userId = 'userId'
       const mockSession = {
@@ -423,6 +474,16 @@ describe('SuperTokensAuthGuard', () => {
       await request(app.getHttpServer()).get(`/session-params`)
       expect(getSession).toHaveBeenCalledTimes(1)
       expect(checkSessionDecoratorFn).toHaveBeenCalledWith(mockSession, userId)
+    })
+    it('Session throws when missing', async () => {
+      getSession.mockImplementationOnce(() => undefined)
+      await request(app.getHttpServer()).get(`/session-missing`).expect(500)
+      expect(getSession).toHaveBeenCalledTimes(1)
+    })
+    it('Session throws when property missing', async () => {
+      getSession.mockImplementationOnce(() => ({}))
+      await request(app.getHttpServer()).get(`/session-missing`).expect(500)
+      expect(getSession).toHaveBeenCalledTimes(1)
     })
   })
 

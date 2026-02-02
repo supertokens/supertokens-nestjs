@@ -1,4 +1,4 @@
-import { vi, describe, it, beforeAll, expect, beforeEach } from 'vitest'
+import { vi, describe, it, beforeAll, expect, afterAll } from 'vitest'
 import { Controller, Get, INestApplication, UseGuards } from '@nestjs/common'
 import request from 'supertest'
 import { Test } from '@nestjs/testing'
@@ -18,7 +18,8 @@ const AppInfo = {
 }
 
 // @ts-expect-error
-const connectionUri = import.meta.env.VITE_ST_CONNECTION_URI || "http://localhost:4356"
+const connectionUri =
+  import.meta.env.VITE_ST_CONNECTION_URI || 'http://localhost:4356'
 
 describe('SuperTokensExpressExceptionFilter', () => {
   let app: INestApplication
@@ -61,11 +62,20 @@ describe('SuperTokensExpressExceptionFilter', () => {
     await app.listen(0)
   })
 
+  afterAll(async () => {
+    if (app) {
+      await app.close()
+    }
+  })
+
   it('should catch authentication errors', async () => {
     const spy = vi.spyOn(exceptionFilter, 'handler')
     expect(spy).not.toHaveBeenCalled()
-    await request(app.getHttpServer()).get(`/`)
-    await request(app.getHttpServer()).get(`/protected`)
+    await request(app.getHttpServer()).get(`/`).expect(401)
+    const response = await request(app.getHttpServer())
+      .get(`/protected`)
+      .expect(401)
+    expect(response.headers['content-type']).toContain('application/json')
     expect(spy).toHaveBeenCalled()
   })
 })
