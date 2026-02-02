@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.1
+
+### Patch Changes
+
+- a71f38d: Add separate exception filter for fastify
+
 ## 1.0.0
 
 ### Major Changes
