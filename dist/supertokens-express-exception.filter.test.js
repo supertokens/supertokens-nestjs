@@ -20,7 +20,7 @@ const session_1 = __importDefault(require("supertokens-node/recipe/session"));
 const emailpassword_1 = __importDefault(require("supertokens-node/recipe/emailpassword"));
 const supertokens_module_1 = require("./supertokens.module");
 const supertokens_auth_guard_1 = require("./supertokens-auth.guard");
-const supertokens_exception_filter_1 = require("./supertokens-exception.filter");
+const supertokens_express_exception_filter_1 = require("./supertokens-express-exception.filter");
 const AppInfo = {
     appName: 'ST',
     apiDomain: 'http://localhost:3001',
@@ -28,8 +28,8 @@ const AppInfo = {
     apiBasePath: '/auth',
     websiteBasePath: '/auth',
 };
-const connectionUri = import.meta.env.VITE_ST_CONNECTION_URI;
-(0, vitest_1.describe)('SuperTokensExceptionFilter', () => {
+const connectionUri = process.env.VITE_ST_CONNECTION_URI || 'http://localhost:4356';
+(0, vitest_1.describe)('SuperTokensExpressExceptionFilter', () => {
     let app;
     let exceptionFilter;
     (0, vitest_1.beforeAll)(async () => {
@@ -71,16 +71,24 @@ const connectionUri = import.meta.env.VITE_ST_CONNECTION_URI;
             controllers: [TestController],
         }).compile();
         app = moduleRef.createNestApplication();
-        exceptionFilter = new supertokens_exception_filter_1.SuperTokensExceptionFilter();
+        exceptionFilter = new supertokens_express_exception_filter_1.SuperTokensExpressExceptionFilter();
         app.useGlobalFilters(exceptionFilter);
         await app.init();
         await app.listen(0);
     });
+    (0, vitest_1.afterAll)(async () => {
+        if (app) {
+            await app.close();
+        }
+    });
     (0, vitest_1.it)('should catch authentication errors', async () => {
         const spy = vitest_1.vi.spyOn(exceptionFilter, 'handler');
         (0, vitest_1.expect)(spy).not.toHaveBeenCalled();
-        await (0, supertest_1.default)(app.getHttpServer()).get(`/`);
-        await (0, supertest_1.default)(app.getHttpServer()).get(`/protected`);
+        await (0, supertest_1.default)(app.getHttpServer()).get(`/`).expect(401);
+        const response = await (0, supertest_1.default)(app.getHttpServer())
+            .get(`/protected`)
+            .expect(401);
+        (0, vitest_1.expect)(response.headers['content-type']).toContain('application/json');
         (0, vitest_1.expect)(spy).toHaveBeenCalled();
     });
 });

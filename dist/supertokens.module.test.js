@@ -7,6 +7,7 @@ const vitest_1 = require("vitest");
 const testing_1 = require("@nestjs/testing");
 const session_1 = __importDefault(require("supertokens-node/recipe/session"));
 const supertokens_module_1 = require("./supertokens.module");
+const supertokens_express_middleware_1 = require("./supertokens-express.middleware");
 const AppInfo = {
     appName: 'ST',
     apiDomain: 'http://localhost:3001',
@@ -14,7 +15,7 @@ const AppInfo = {
     apiBasePath: '/auth',
     websiteBasePath: '/auth',
 };
-const connectionUri = import.meta.env.VITE_ST_CONNECTION_URI;
+const connectionUri = import.meta.env.VITE_ST_CONNECTION_URI || "http://localhost:4356";
 (0, vitest_1.describe)('SuperTokensModule', () => {
     (0, vitest_1.beforeAll)(async () => { });
     (0, vitest_1.it)('should initialize with forRoot', async () => {
@@ -57,5 +58,38 @@ const connectionUri = import.meta.env.VITE_ST_CONNECTION_URI;
         const module = app.get(supertokens_module_1.SuperTokensModule);
         (0, vitest_1.expect)(module).toBeDefined();
         await app.close();
+    });
+    (0, vitest_1.it)('should apply express middleware only for express', () => {
+        const options = {
+            framework: 'express',
+            supertokens: {
+                connectionURI: connectionUri,
+            },
+            appInfo: AppInfo,
+            recipeList: [session_1.default.init()],
+        };
+        const module = new supertokens_module_1.SuperTokensModule(options);
+        const forRoutes = vitest_1.vi.fn();
+        const apply = vitest_1.vi.fn(() => ({ forRoutes }));
+        const consumer = { apply };
+        module.configure(consumer);
+        (0, vitest_1.expect)(apply).toHaveBeenCalledWith(supertokens_express_middleware_1.SuperTokensExpressAuthMiddleware);
+        (0, vitest_1.expect)(forRoutes).toHaveBeenCalledWith('*');
+    });
+    (0, vitest_1.it)('should not apply express middleware for fastify', () => {
+        const options = {
+            framework: 'fastify',
+            supertokens: {
+                connectionURI: connectionUri,
+            },
+            appInfo: AppInfo,
+            recipeList: [session_1.default.init()],
+            fastifyAdapter: {},
+        };
+        const module = new supertokens_module_1.SuperTokensModule(options);
+        const apply = vitest_1.vi.fn();
+        const consumer = { apply };
+        module.configure(consumer);
+        (0, vitest_1.expect)(apply).not.toHaveBeenCalled();
     });
 });

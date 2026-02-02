@@ -30,7 +30,7 @@ const supertokens_node_1 = require("supertokens-node");
 const graphql_2 = require("graphql");
 const supertokens_module_1 = require("./supertokens.module");
 const supertokens_auth_guard_1 = require("./supertokens-auth.guard");
-const supertokens_exception_filter_1 = require("./supertokens-exception.filter");
+const supertokens_express_exception_filter_1 = require("./supertokens-express-exception.filter");
 const core_1 = require("@nestjs/core");
 const decorators_1 = require("./decorators");
 const fastify_1 = require("supertokens-node/framework/fastify");
@@ -41,7 +41,7 @@ const AppInfo = {
     apiBasePath: '/auth',
     websiteBasePath: '/auth',
 };
-const connectionUri = import.meta.env.VITE_ST_CONNECTION_URI;
+const connectionUri = process.env.VITE_ST_CONNECTION_URI || 'http://localhost:4356';
 const getSession = session_1.default.getSession;
 vitest_1.vi.mock('supertokens-node/recipe/session', { spy: true });
 (0, vitest_1.describe)('SuperTokensAuthGuard', () => {
@@ -84,7 +84,7 @@ vitest_1.vi.mock('supertokens-node/recipe/session', { spy: true });
             controllers: [TestController],
         }).compile();
         const app = moduleRef.createNestApplication();
-        app.useGlobalFilters(new supertokens_exception_filter_1.SuperTokensExceptionFilter());
+        app.useGlobalFilters(new supertokens_express_exception_filter_1.SuperTokensExpressExceptionFilter());
         await app.init();
         await app.listen(0);
         await (0, supertest_1.default)(app.getHttpServer()).get(`/`).expect(200);
@@ -130,7 +130,7 @@ vitest_1.vi.mock('supertokens-node/recipe/session', { spy: true });
             controllers: [TestController],
         }).compile();
         const app = moduleRef.createNestApplication();
-        app.useGlobalFilters(new supertokens_exception_filter_1.SuperTokensExceptionFilter());
+        app.useGlobalFilters(new supertokens_express_exception_filter_1.SuperTokensExpressExceptionFilter());
         await app.init();
         await app.listen(0);
         await (0, supertest_1.default)(app.getHttpServer()).get(`/`).expect(401);
@@ -186,7 +186,7 @@ vitest_1.vi.mock('supertokens-node/recipe/session', { spy: true });
             ],
         }).compile();
         const app = moduleRef.createNestApplication();
-        app.useGlobalFilters(new supertokens_exception_filter_1.SuperTokensExceptionFilter());
+        app.useGlobalFilters(new supertokens_express_exception_filter_1.SuperTokensExpressExceptionFilter());
         await app.init();
         await app.listen(0);
         await (0, supertest_1.default)(app.getHttpServer()).get(`/first/`).expect(401);
@@ -208,8 +208,12 @@ vitest_1.vi.mock('supertokens-node/recipe/session', { spy: true });
                 disableEmailVerification() { }
                 requireMFA() { }
                 disableMFA() { }
+                overrideValidators() { }
                 sessionParams(session, userId) {
                     checkSessionDecoratorFn(session, userId);
+                }
+                sessionMissing(userId) {
+                    return userId;
                 }
             };
             __decorate([
@@ -297,6 +301,21 @@ vitest_1.vi.mock('supertokens-node/recipe/session', { spy: true });
                 __metadata("design:returntype", void 0)
             ], TestController.prototype, "disableMFA", null);
             __decorate([
+                (0, decorators_1.VerifySession)({
+                    requireMFA: true,
+                    options: {
+                        overrideGlobalClaimValidators: (globalValidators) => [
+                            ...globalValidators,
+                            emailverification_1.EmailVerificationClaim.validators.isVerified(),
+                        ],
+                    },
+                }),
+                (0, common_1.Get)('/override-validators'),
+                __metadata("design:type", Function),
+                __metadata("design:paramtypes", []),
+                __metadata("design:returntype", void 0)
+            ], TestController.prototype, "overrideValidators", null);
+            __decorate([
                 (0, common_1.Get)('/session-params'),
                 __param(0, (0, decorators_1.Session)()),
                 __param(1, (0, decorators_1.Session)('userId')),
@@ -304,6 +323,13 @@ vitest_1.vi.mock('supertokens-node/recipe/session', { spy: true });
                 __metadata("design:paramtypes", [Object, Object]),
                 __metadata("design:returntype", void 0)
             ], TestController.prototype, "sessionParams", null);
+            __decorate([
+                (0, common_1.Get)('/session-missing'),
+                __param(0, (0, decorators_1.Session)('userId')),
+                __metadata("design:type", Function),
+                __metadata("design:paramtypes", [Object]),
+                __metadata("design:returntype", void 0)
+            ], TestController.prototype, "sessionMissing", null);
             TestController = __decorate([
                 (0, common_1.Controller)(),
                 (0, common_1.UseGuards)(supertokens_auth_guard_1.SuperTokensAuthGuard)
@@ -323,7 +349,7 @@ vitest_1.vi.mock('supertokens-node/recipe/session', { spy: true });
             }).compile();
             app = moduleRef.createNestApplication();
             guard = moduleRef.get(supertokens_auth_guard_1.SuperTokensAuthGuard);
-            app.useGlobalFilters(new supertokens_exception_filter_1.SuperTokensExceptionFilter());
+            app.useGlobalFilters(new supertokens_express_exception_filter_1.SuperTokensExpressExceptionFilter());
             await app.init();
             await app.listen(0);
         });
@@ -338,6 +364,56 @@ vitest_1.vi.mock('supertokens-node/recipe/session', { spy: true });
         (0, vitest_1.it)('PublicAccess', async () => {
             await (0, supertest_1.default)(app.getHttpServer()).get(`/`).expect(200);
             await (0, supertest_1.default)(app.getHttpServer()).get(`/protected`).expect(401);
+        });
+        (0, vitest_1.it)('PublicAccess on controller', async () => {
+            let PublicController = class PublicController {
+                getPublicRoute1() {
+                    return 'controller public';
+                }
+                getPublicRoute2() {
+                    return 'controller protected';
+                }
+            };
+            __decorate([
+                (0, common_1.Get)('/route1'),
+                __metadata("design:type", Function),
+                __metadata("design:paramtypes", []),
+                __metadata("design:returntype", void 0)
+            ], PublicController.prototype, "getPublicRoute1", null);
+            __decorate([
+                (0, common_1.Get)('/route2'),
+                __metadata("design:type", Function),
+                __metadata("design:paramtypes", []),
+                __metadata("design:returntype", void 0)
+            ], PublicController.prototype, "getPublicRoute2", null);
+            PublicController = __decorate([
+                (0, common_1.Controller)('/public-controller'),
+                (0, decorators_1.PublicAccess)()
+            ], PublicController);
+            const moduleRef = await testing_1.Test.createTestingModule({
+                imports: [
+                    supertokens_module_1.SuperTokensModule.forRoot({
+                        framework: 'express',
+                        supertokens: {
+                            connectionURI: connectionUri,
+                        },
+                        appInfo: AppInfo,
+                        recipeList: [session_1.default.init(), emailpassword_1.default.init()],
+                    }),
+                ],
+                controllers: [PublicController],
+            }).compile();
+            const app = moduleRef.createNestApplication();
+            app.useGlobalFilters(new supertokens_express_exception_filter_1.SuperTokensExpressExceptionFilter());
+            await app.init();
+            await app.listen(0);
+            await (0, supertest_1.default)(app.getHttpServer())
+                .get(`/public-controller/route1`)
+                .expect(200);
+            await (0, supertest_1.default)(app.getHttpServer())
+                .get(`/public-controller/route2`)
+                .expect(200);
+            await app.close();
         });
         (0, vitest_1.it)('VerifySession', async () => {
             await (0, supertest_1.default)(app.getHttpServer()).get(`/protected`);
@@ -402,6 +478,35 @@ vitest_1.vi.mock('supertokens-node/recipe/session', { spy: true });
                 (0, vitest_1.expect)(validator.id).toBe(expectedValidators[index].id);
             }
         });
+        (0, vitest_1.it)('Auth[disableMFA]', async () => {
+            await (0, supertest_1.default)(app.getHttpServer()).get(`/disable-mfa`);
+            (0, vitest_1.expect)(getSession).toHaveBeenCalledTimes(1);
+            const [, , verifySessionOptions] = getSession.mock.lastCall;
+            const mfaValidator = multifactorauth_1.MultiFactorAuthClaim.validators.hasCompletedMFARequirementsForAuth();
+            const emailValidator = emailverification_1.EmailVerificationClaim.validators.isVerified();
+            const validators = [mfaValidator, emailValidator];
+            const actualValidators = await verifySessionOptions.overrideGlobalClaimValidators(validators);
+            const ids = actualValidators.map((validator) => validator.id);
+            (0, vitest_1.expect)(ids).not.toContain(mfaValidator.id);
+            (0, vitest_1.expect)(ids).toContain(emailValidator.id);
+        });
+        (0, vitest_1.it)('Auth[overrideGlobalClaimValidators]', async () => {
+            await (0, supertest_1.default)(app.getHttpServer()).get(`/override-validators`);
+            (0, vitest_1.expect)(getSession).toHaveBeenCalledTimes(1);
+            const [, , verifySessionOptions] = getSession.mock.lastCall;
+            const baseValidator = userroles_1.default.UserRoleClaim.validators.includesAll([
+                'admin',
+            ]);
+            const emailValidator = emailverification_1.EmailVerificationClaim.validators.isVerified();
+            const mfaValidator = multifactorauth_1.MultiFactorAuthClaim.validators.hasCompletedMFARequirementsForAuth();
+            const actualValidators = await verifySessionOptions.overrideGlobalClaimValidators([
+                baseValidator,
+            ]);
+            const ids = actualValidators.map((validator) => validator.id);
+            (0, vitest_1.expect)(ids).toContain(baseValidator.id);
+            (0, vitest_1.expect)(ids).toContain(emailValidator.id);
+            (0, vitest_1.expect)(ids).toContain(mfaValidator.id);
+        });
         (0, vitest_1.it)('Session', async () => {
             const userId = 'userId';
             const mockSession = {
@@ -411,6 +516,16 @@ vitest_1.vi.mock('supertokens-node/recipe/session', { spy: true });
             await (0, supertest_1.default)(app.getHttpServer()).get(`/session-params`);
             (0, vitest_1.expect)(getSession).toHaveBeenCalledTimes(1);
             (0, vitest_1.expect)(checkSessionDecoratorFn).toHaveBeenCalledWith(mockSession, userId);
+        });
+        (0, vitest_1.it)('Session throws when missing', async () => {
+            getSession.mockImplementationOnce(() => undefined);
+            await (0, supertest_1.default)(app.getHttpServer()).get(`/session-missing`).expect(500);
+            (0, vitest_1.expect)(getSession).toHaveBeenCalledTimes(1);
+        });
+        (0, vitest_1.it)('Session throws when property missing', async () => {
+            getSession.mockImplementationOnce(() => ({}));
+            await (0, supertest_1.default)(app.getHttpServer()).get(`/session-missing`).expect(500);
+            (0, vitest_1.expect)(getSession).toHaveBeenCalledTimes(1);
         });
     });
     (0, vitest_1.it)('should work with graphql', async () => {

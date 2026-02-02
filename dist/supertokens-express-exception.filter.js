@@ -9,11 +9,11 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SuperTokensExceptionFilter = void 0;
+exports.SuperTokensExpressExceptionFilter = void 0;
 const common_1 = require("@nestjs/common");
 const supertokens_node_1 = require("supertokens-node");
 const express_1 = require("supertokens-node/framework/express");
-let SuperTokensExceptionFilter = class SuperTokensExceptionFilter {
+let SuperTokensExpressExceptionFilter = class SuperTokensExpressExceptionFilter {
     constructor() {
         this.handler = (0, express_1.errorHandler)();
     }
@@ -23,8 +23,8 @@ let SuperTokensExceptionFilter = class SuperTokensExceptionFilter {
         this.handler(exception, ctx.getRequest(), resp, ctx.getNext());
     }
 };
-exports.SuperTokensExceptionFilter = SuperTokensExceptionFilter;
-exports.SuperTokensExceptionFilter = SuperTokensExceptionFilter = __decorate([
+exports.SuperTokensExpressExceptionFilter = SuperTokensExpressExceptionFilter;
+exports.SuperTokensExpressExceptionFilter = SuperTokensExpressExceptionFilter = __decorate([
     (0, common_1.Catch)(supertokens_node_1.Error),
     __metadata("design:paramtypes", [])
-], SuperTokensExceptionFilter);
+], SuperTokensExpressExceptionFilter);

@@ -14,7 +14,11 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.SuperTokensExceptionFilter = exports.SuperTokensExpressExceptionFilter = void 0;
 __exportStar(require("./supertokens.module"), exports);
-__exportStar(require("./supertokens-exception.filter"), exports);
+var supertokens_express_exception_filter_1 = require("./supertokens-express-exception.filter");
+Object.defineProperty(exports, "SuperTokensExpressExceptionFilter", { enumerable: true, get: function () { return supertokens_express_exception_filter_1.SuperTokensExpressExceptionFilter; } });
+Object.defineProperty(exports, "SuperTokensExceptionFilter", { enumerable: true, get: function () { return supertokens_express_exception_filter_1.SuperTokensExpressExceptionFilter; } });
+__exportStar(require("./supertokens-fastify-exception.filter"), exports);
 __exportStar(require("./supertokens-auth.guard"), exports);
 __exportStar(require("./decorators"), exports);

@@ -13,7 +13,7 @@ export interface SuperTokensModuleAsyncOptions extends Pick<ModuleMetadata, 'imp
     global?: boolean;
     useExisting?: Type<SuperTokensModuleOptionsFactory>;
     useClass?: Type<SuperTokensModuleOptionsFactory>;
-    useFactory?: (...args: unknown[]) => Promise<SuperTokensModuleOptions> | SuperTokensModuleOptions;
+    useFactory?: (...args: any[]) => Promise<SuperTokensModuleOptions> | SuperTokensModuleOptions;
     inject?: (InjectionToken | OptionalFactoryDependency)[];
 }
 export type SuperTokensSession = Awaited<ReturnType<typeof getSession>>;

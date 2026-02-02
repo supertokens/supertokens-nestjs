@@ -1,4 +1,4 @@
-import { vi, describe, it, beforeAll, expect, beforeEach } from 'vitest'
+import { vi, describe, it, beforeAll, expect, afterAll } from 'vitest'
 import { Controller, Get, INestApplication, UseGuards } from '@nestjs/common'
 import request from 'supertest'
 import { Test } from '@nestjs/testing'
@@ -7,7 +7,7 @@ import EmailPassword from 'supertokens-node/recipe/emailpassword'
 
 import { SuperTokensModule } from './supertokens.module'
 import { SuperTokensAuthGuard } from './supertokens-auth.guard'
-import { SuperTokensExceptionFilter } from './supertokens-exception.filter'
+import { SuperTokensExpressExceptionFilter } from './supertokens-express-exception.filter'
 
 const AppInfo = {
   appName: 'ST',
@@ -17,12 +17,12 @@ const AppInfo = {
   websiteBasePath: '/auth',
 }
 
-// @ts-expect-error
-const connectionUri = import.meta.env.VITE_ST_CONNECTION_URI || "http://localhost:4356"
+const connectionUri =
+  process.env.VITE_ST_CONNECTION_URI || 'http://localhost:4356'
 
-describe('SuperTokensExceptionFilter', () => {
+describe('SuperTokensExpressExceptionFilter', () => {
   let app: INestApplication
-  let exceptionFilter: SuperTokensExceptionFilter
+  let exceptionFilter: SuperTokensExpressExceptionFilter
 
   beforeAll(async () => {
     @Controller()
@@ -54,18 +54,27 @@ describe('SuperTokensExceptionFilter', () => {
 
     app = moduleRef.createNestApplication()
 
-    exceptionFilter = new SuperTokensExceptionFilter()
+    exceptionFilter = new SuperTokensExpressExceptionFilter()
     app.useGlobalFilters(exceptionFilter)
     await app.init()
     // This is required so that the filters get applied
     await app.listen(0)
   })
 
+  afterAll(async () => {
+    if (app) {
+      await app.close()
+    }
+  })
+
   it('should catch authentication errors', async () => {
     const spy = vi.spyOn(exceptionFilter, 'handler')
     expect(spy).not.toHaveBeenCalled()
-    await request(app.getHttpServer()).get(`/`)
-    await request(app.getHttpServer()).get(`/protected`)
+    await request(app.getHttpServer()).get(`/`).expect(401)
+    const response = await request(app.getHttpServer())
+      .get(`/protected`)
+      .expect(401)
+    expect(response.headers['content-type']).toContain('application/json')
     expect(spy).toHaveBeenCalled()
   })
 })

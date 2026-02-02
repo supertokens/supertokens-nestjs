@@ -24,12 +24,15 @@ const emailverification_1 = require("supertokens-node/recipe/emailverification")
 const multifactorauth_1 = require("supertokens-node/recipe/multifactorauth");
 const decorators_1 = require("./decorators");
 let SuperTokensAuthGuard = class SuperTokensAuthGuard {
-    constructor(extractDataFromConext) {
+    constructor(extractDataFromContext) {
         this.reflector = new core_1.Reflector();
-        this.customCtxDataExtractor = extractDataFromConext;
+        this.customCtxDataExtractor = extractDataFromContext;
     }
     async canActivate(context) {
-        const isPublic = this.reflector.get(decorators_1.PublicAccess, context.getHandler());
+        const isPublic = this.reflector.getAllAndOverride(decorators_1.PublicAccess, [
+            context.getHandler(),
+            context.getClass(),
+        ]);
         if (isPublic)
             return true;
         const { request, response } = this.extractDataFromContext(context);
