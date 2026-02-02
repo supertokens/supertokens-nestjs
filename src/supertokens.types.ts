@@ -31,7 +31,7 @@ export interface SuperTokensModuleAsyncOptions
   useExisting?: Type<SuperTokensModuleOptionsFactory>
   useClass?: Type<SuperTokensModuleOptionsFactory>
   useFactory?: (
-    ...args: unknown[]
+    ...args: any[]
   ) => Promise<SuperTokensModuleOptions> | SuperTokensModuleOptions
   inject?: (InjectionToken | OptionalFactoryDependency)[]
 }
