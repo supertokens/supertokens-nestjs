@@ -28,7 +28,7 @@ const AppInfo = {
     apiBasePath: '/auth',
     websiteBasePath: '/auth',
 };
-const connectionUri = import.meta.env.VITE_ST_CONNECTION_URI || "http://localhost:4356";
+const connectionUri = process.env.VITE_ST_CONNECTION_URI || 'http://localhost:4356';
 (0, vitest_1.describe)('SuperTokensExceptionFilter with Fastify', () => {
     let app;
     (0, vitest_1.beforeAll)(async () => {
@@ -82,7 +82,7 @@ const connectionUri = import.meta.env.VITE_ST_CONNECTION_URI || "http://localhos
     (0, vitest_1.it)('should catch authentication errors without crashing', async () => {
         const response = await app.inject({
             method: 'GET',
-            url: '/protected'
+            url: '/protected',
         });
         (0, vitest_1.expect)(response.statusCode).toBe(401);
     });

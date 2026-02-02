@@ -55,9 +55,8 @@ const AppInfo = {
   websiteBasePath: '/auth',
 }
 
-// @ts-expect-error
 const connectionUri =
-  import.meta.env.VITE_ST_CONNECTION_URI || 'http://localhost:4356'
+  process.env.VITE_ST_CONNECTION_URI || 'http://localhost:4356'
 
 const getSession = Session.getSession as Mock<typeof getSession>
 vi.mock('supertokens-node/recipe/session', { spy: true })

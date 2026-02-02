@@ -41,7 +41,7 @@ const AppInfo = {
     apiBasePath: '/auth',
     websiteBasePath: '/auth',
 };
-const connectionUri = import.meta.env.VITE_ST_CONNECTION_URI || "http://localhost:4356";
+const connectionUri = process.env.VITE_ST_CONNECTION_URI || 'http://localhost:4356';
 const getSession = session_1.default.getSession;
 vitest_1.vi.mock('supertokens-node/recipe/session', { spy: true });
 (0, vitest_1.describe)('SuperTokensAuthGuard', () => {
@@ -208,8 +208,12 @@ vitest_1.vi.mock('supertokens-node/recipe/session', { spy: true });
                 disableEmailVerification() { }
                 requireMFA() { }
                 disableMFA() { }
+                overrideValidators() { }
                 sessionParams(session, userId) {
                     checkSessionDecoratorFn(session, userId);
+                }
+                sessionMissing(userId) {
+                    return userId;
                 }
             };
             __decorate([
@@ -297,6 +301,21 @@ vitest_1.vi.mock('supertokens-node/recipe/session', { spy: true });
                 __metadata("design:returntype", void 0)
             ], TestController.prototype, "disableMFA", null);
             __decorate([
+                (0, decorators_1.VerifySession)({
+                    requireMFA: true,
+                    options: {
+                        overrideGlobalClaimValidators: (globalValidators) => [
+                            ...globalValidators,
+                            emailverification_1.EmailVerificationClaim.validators.isVerified(),
+                        ],
+                    },
+                }),
+                (0, common_1.Get)('/override-validators'),
+                __metadata("design:type", Function),
+                __metadata("design:paramtypes", []),
+                __metadata("design:returntype", void 0)
+            ], TestController.prototype, "overrideValidators", null);
+            __decorate([
                 (0, common_1.Get)('/session-params'),
                 __param(0, (0, decorators_1.Session)()),
                 __param(1, (0, decorators_1.Session)('userId')),
@@ -304,6 +323,13 @@ vitest_1.vi.mock('supertokens-node/recipe/session', { spy: true });
                 __metadata("design:paramtypes", [Object, Object]),
                 __metadata("design:returntype", void 0)
             ], TestController.prototype, "sessionParams", null);
+            __decorate([
+                (0, common_1.Get)('/session-missing'),
+                __param(0, (0, decorators_1.Session)('userId')),
+                __metadata("design:type", Function),
+                __metadata("design:paramtypes", [Object]),
+                __metadata("design:returntype", void 0)
+            ], TestController.prototype, "sessionMissing", null);
             TestController = __decorate([
                 (0, common_1.Controller)(),
                 (0, common_1.UseGuards)(supertokens_auth_guard_1.SuperTokensAuthGuard)
@@ -452,6 +478,35 @@ vitest_1.vi.mock('supertokens-node/recipe/session', { spy: true });
                 (0, vitest_1.expect)(validator.id).toBe(expectedValidators[index].id);
             }
         });
+        (0, vitest_1.it)('Auth[disableMFA]', async () => {
+            await (0, supertest_1.default)(app.getHttpServer()).get(`/disable-mfa`);
+            (0, vitest_1.expect)(getSession).toHaveBeenCalledTimes(1);
+            const [, , verifySessionOptions] = getSession.mock.lastCall;
+            const mfaValidator = multifactorauth_1.MultiFactorAuthClaim.validators.hasCompletedMFARequirementsForAuth();
+            const emailValidator = emailverification_1.EmailVerificationClaim.validators.isVerified();
+            const validators = [mfaValidator, emailValidator];
+            const actualValidators = await verifySessionOptions.overrideGlobalClaimValidators(validators);
+            const ids = actualValidators.map((validator) => validator.id);
+            (0, vitest_1.expect)(ids).not.toContain(mfaValidator.id);
+            (0, vitest_1.expect)(ids).toContain(emailValidator.id);
+        });
+        (0, vitest_1.it)('Auth[overrideGlobalClaimValidators]', async () => {
+            await (0, supertest_1.default)(app.getHttpServer()).get(`/override-validators`);
+            (0, vitest_1.expect)(getSession).toHaveBeenCalledTimes(1);
+            const [, , verifySessionOptions] = getSession.mock.lastCall;
+            const baseValidator = userroles_1.default.UserRoleClaim.validators.includesAll([
+                'admin',
+            ]);
+            const emailValidator = emailverification_1.EmailVerificationClaim.validators.isVerified();
+            const mfaValidator = multifactorauth_1.MultiFactorAuthClaim.validators.hasCompletedMFARequirementsForAuth();
+            const actualValidators = await verifySessionOptions.overrideGlobalClaimValidators([
+                baseValidator,
+            ]);
+            const ids = actualValidators.map((validator) => validator.id);
+            (0, vitest_1.expect)(ids).toContain(baseValidator.id);
+            (0, vitest_1.expect)(ids).toContain(emailValidator.id);
+            (0, vitest_1.expect)(ids).toContain(mfaValidator.id);
+        });
         (0, vitest_1.it)('Session', async () => {
             const userId = 'userId';
             const mockSession = {
@@ -461,6 +516,16 @@ vitest_1.vi.mock('supertokens-node/recipe/session', { spy: true });
             await (0, supertest_1.default)(app.getHttpServer()).get(`/session-params`);
             (0, vitest_1.expect)(getSession).toHaveBeenCalledTimes(1);
             (0, vitest_1.expect)(checkSessionDecoratorFn).toHaveBeenCalledWith(mockSession, userId);
+        });
+        (0, vitest_1.it)('Session throws when missing', async () => {
+            getSession.mockImplementationOnce(() => undefined);
+            await (0, supertest_1.default)(app.getHttpServer()).get(`/session-missing`).expect(500);
+            (0, vitest_1.expect)(getSession).toHaveBeenCalledTimes(1);
+        });
+        (0, vitest_1.it)('Session throws when property missing', async () => {
+            getSession.mockImplementationOnce(() => ({}));
+            await (0, supertest_1.default)(app.getHttpServer()).get(`/session-missing`).expect(500);
+            (0, vitest_1.expect)(getSession).toHaveBeenCalledTimes(1);
         });
     });
     (0, vitest_1.it)('should work with graphql', async () => {

@@ -28,7 +28,7 @@ const AppInfo = {
     apiBasePath: '/auth',
     websiteBasePath: '/auth',
 };
-const connectionUri = import.meta.env.VITE_ST_CONNECTION_URI || "http://localhost:4356";
+const connectionUri = process.env.VITE_ST_CONNECTION_URI || 'http://localhost:4356';
 (0, vitest_1.describe)('SuperTokensExpressExceptionFilter', () => {
     let app;
     let exceptionFilter;
@@ -76,11 +76,19 @@ const connectionUri = import.meta.env.VITE_ST_CONNECTION_URI || "http://localhos
         await app.init();
         await app.listen(0);
     });
+    (0, vitest_1.afterAll)(async () => {
+        if (app) {
+            await app.close();
+        }
+    });
     (0, vitest_1.it)('should catch authentication errors', async () => {
         const spy = vitest_1.vi.spyOn(exceptionFilter, 'handler');
         (0, vitest_1.expect)(spy).not.toHaveBeenCalled();
-        await (0, supertest_1.default)(app.getHttpServer()).get(`/`);
-        await (0, supertest_1.default)(app.getHttpServer()).get(`/protected`);
+        await (0, supertest_1.default)(app.getHttpServer()).get(`/`).expect(401);
+        const response = await (0, supertest_1.default)(app.getHttpServer())
+            .get(`/protected`)
+            .expect(401);
+        (0, vitest_1.expect)(response.headers['content-type']).toContain('application/json');
         (0, vitest_1.expect)(spy).toHaveBeenCalled();
     });
 });

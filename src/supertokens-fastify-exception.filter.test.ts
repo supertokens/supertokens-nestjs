@@ -20,9 +20,8 @@ const AppInfo = {
   websiteBasePath: '/auth',
 }
 
-// @ts-expect-error
 const connectionUri =
-  import.meta.env.VITE_ST_CONNECTION_URI || 'http://localhost:4356'
+  process.env.VITE_ST_CONNECTION_URI || 'http://localhost:4356'
 
 describe('SuperTokensExceptionFilter with Fastify', () => {
   let app: NestFastifyApplication
