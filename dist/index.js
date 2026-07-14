@@ -21,4 +21,5 @@ Object.defineProperty(exports, "SuperTokensExpressExceptionFilter", { enumerable
 Object.defineProperty(exports, "SuperTokensExceptionFilter", { enumerable: true, get: function () { return supertokens_express_exception_filter_1.SuperTokensExpressExceptionFilter; } });
 __exportStar(require("./supertokens-fastify-exception.filter"), exports);
 __exportStar(require("./supertokens-auth.guard"), exports);
+__exportStar(require("./supertokens-session.verifier"), exports);
 __exportStar(require("./decorators"), exports);

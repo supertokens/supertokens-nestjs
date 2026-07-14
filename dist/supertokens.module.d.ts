@@ -1,5 +1,5 @@
-import { MiddlewareConsumer, DynamicModule } from "@nestjs/common";
-import { SuperTokensModuleOptions, SuperTokensModuleAsyncOptions } from "./supertokens.types";
+import { MiddlewareConsumer, DynamicModule } from '@nestjs/common';
+import { SuperTokensModuleOptions, SuperTokensModuleAsyncOptions } from './supertokens.types';
 export declare class SuperTokensModule {
     private options;
     constructor(options: SuperTokensModuleOptions);
