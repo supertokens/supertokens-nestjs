@@ -6,4 +6,12 @@ export {
 export * from './supertokens-fastify-exception.filter'
 export * from './supertokens-auth.guard'
 export * from './supertokens-session.verifier'
+export type {
+  ContextDataExtractor,
+  SuperTokensModuleAsyncOptions,
+  SuperTokensModuleOptions,
+  SuperTokensModuleOptionsFactory,
+  SuperTokensSession,
+  VerifySessionDecoratorOptions,
+} from './supertokens.types'
 export * from './decorators'
