@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.0
+
+### Minor Changes
+
+- d1264e1: Expose `SuperTokensSessionVerifier` so custom guards can compose multiple verifier methods while reusing SuperTokens session validation instead of duplicating `VerifySession` logic.
+
 ## 1.0.1
 
 ### Patch Changes
