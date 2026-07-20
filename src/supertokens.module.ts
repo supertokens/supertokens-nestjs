@@ -4,21 +4,22 @@ import {
   Provider,
   DynamicModule,
   Inject,
-} from "@nestjs/common"
+} from '@nestjs/common'
 
-import { SuperTokensExpressAuthMiddleware } from "./supertokens-express.middleware"
-import { SUPERTOKENS_MODULE_OPTIONS } from "./supertokens.constants"
-import { SuperTokensService } from "./supertokens.service"
+import { SuperTokensExpressAuthMiddleware } from './supertokens-express.middleware'
+import { SUPERTOKENS_MODULE_OPTIONS } from './supertokens.constants'
+import { SuperTokensService } from './supertokens.service'
+import { SuperTokensSessionVerifier } from './supertokens-session.verifier'
 
 import {
   SuperTokensModuleOptions,
   SuperTokensModuleOptionsFactory,
   SuperTokensModuleAsyncOptions,
-} from "./supertokens.types"
+} from './supertokens.types'
 
 @Module({
-  providers: [SuperTokensService],
-  exports: [],
+  providers: [SuperTokensService, SuperTokensSessionVerifier],
+  exports: [SuperTokensSessionVerifier],
   controllers: [],
 })
 export class SuperTokensModule {
@@ -28,8 +29,8 @@ export class SuperTokensModule {
   ) {}
 
   configure(consumer: MiddlewareConsumer) {
-    if (this.options.framework !== "express") return
-    consumer.apply(SuperTokensExpressAuthMiddleware).forRoutes("*")
+    if (this.options.framework !== 'express') return
+    consumer.apply(SuperTokensExpressAuthMiddleware).forRoutes('*')
   }
 
   static forRoot(
@@ -45,7 +46,9 @@ export class SuperTokensModule {
           provide: SUPERTOKENS_MODULE_OPTIONS,
         },
         SuperTokensService,
+        SuperTokensSessionVerifier,
       ],
+      exports: [SuperTokensSessionVerifier],
     }
   }
 
@@ -56,7 +59,11 @@ export class SuperTokensModule {
       module: SuperTokensModule,
       global,
       imports: options.imports || [],
-      providers: [...this.createAsyncProviders(options)],
+      providers: [
+        ...this.createAsyncProviders(options),
+        SuperTokensSessionVerifier,
+      ],
+      exports: [SuperTokensSessionVerifier],
     }
   }
 
@@ -76,7 +83,7 @@ export class SuperTokensModule {
       ]
     }
 
-    throw new Error("Invalid configuration options")
+    throw new Error('Invalid configuration options')
   }
 
   private static createAsyncOptionsProvider(
@@ -97,6 +104,6 @@ export class SuperTokensModule {
         inject: [options.useExisting],
       }
     }
-    throw new Error("Invalid configuration options")
+    throw new Error('Invalid configuration options')
   }
 }

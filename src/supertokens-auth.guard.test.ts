@@ -10,11 +10,14 @@ import {
 } from 'vitest'
 import {
   ArgumentsHost,
+  CanActivate,
   Catch,
   Controller,
   ExceptionFilter,
   ExecutionContext,
   Get,
+  Inject,
+  Injectable,
   INestApplication,
   UseGuards,
 } from '@nestjs/common'
@@ -38,6 +41,7 @@ import { GraphQLError } from 'graphql'
 
 import { SuperTokensModule } from './supertokens.module'
 import { SuperTokensAuthGuard } from './supertokens-auth.guard'
+import { SuperTokensSessionVerifier } from './supertokens-session.verifier'
 import { SuperTokensExpressExceptionFilter } from './supertokens-express-exception.filter'
 import { APP_GUARD } from '@nestjs/core'
 import {
@@ -192,10 +196,24 @@ describe('SuperTokensAuthGuard', () => {
 
   describe('Decorators', async () => {
     let app: INestApplication
-    let guard: SuperTokensAuthGuard
+    let sessionVerifier: SuperTokensSessionVerifier
     let checkSessionDecoratorFn = vi.fn()
+    let checkComposedGuardFn = vi.fn()
 
     beforeAll(async () => {
+      @Injectable()
+      class ComposedAuthGuard implements CanActivate {
+        constructor(
+          @Inject(SuperTokensSessionVerifier)
+          private readonly verifier: SuperTokensSessionVerifier,
+        ) {}
+
+        async canActivate(context: ExecutionContext): Promise<boolean> {
+          checkComposedGuardFn(this.verifier.isPublic(context))
+          return this.verifier.verifySession(context)
+        }
+      }
+
       @Controller()
       @UseGuards(SuperTokensAuthGuard)
       class TestController {
@@ -282,6 +300,16 @@ describe('SuperTokensAuthGuard', () => {
         }
       }
 
+      @Controller('/composed')
+      class ComposedController {
+        @VerifySession({
+          permissions: ['compose'],
+        })
+        @UseGuards(ComposedAuthGuard)
+        @Get('/')
+        composed() {}
+      }
+
       const moduleRef = await Test.createTestingModule({
         imports: [
           SuperTokensModule.forRoot({
@@ -293,11 +321,12 @@ describe('SuperTokensAuthGuard', () => {
             recipeList: [Session.init(), EmailPassword.init()],
           }),
         ],
-        controllers: [TestController],
+        controllers: [TestController, ComposedController],
+        providers: [ComposedAuthGuard],
       }).compile()
 
       app = moduleRef.createNestApplication()
-      guard = moduleRef.get(SuperTokensAuthGuard)
+      sessionVerifier = moduleRef.get(SuperTokensSessionVerifier)
 
       app.useGlobalFilters(new SuperTokensExpressExceptionFilter())
       await app.init()
@@ -313,6 +342,7 @@ describe('SuperTokensAuthGuard', () => {
 
     beforeEach(async () => {
       getSession.mockClear()
+      checkComposedGuardFn.mockClear()
     })
 
     it('PublicAccess', async () => {
@@ -372,6 +402,25 @@ describe('SuperTokensAuthGuard', () => {
       expect(getSession).toHaveBeenCalledTimes(2)
       const [, , customVerifySessionOptions] = getSession.mock.lastCall
       expect(customVerifySessionOptions.checkDatabase).toBeTruthy()
+    })
+    it('exposes reusable session verifier', async () => {
+      expect(sessionVerifier).toBeInstanceOf(SuperTokensSessionVerifier)
+    })
+    it('supports composed guards that validate sessions with VerifySession metadata', async () => {
+      getSession.mockImplementationOnce(() => ({ getUserId: () => 'userId' }))
+
+      await request(app.getHttpServer()).get(`/composed/`).expect(200)
+
+      expect(checkComposedGuardFn).toHaveBeenCalledWith(false)
+      expect(getSession).toHaveBeenCalledTimes(1)
+      const [, , verifySessionOptions] = getSession.mock.lastCall
+      const actualValidators =
+        await verifySessionOptions.overrideGlobalClaimValidators([])
+      const expectedValidator =
+        UserRoles.PermissionClaim.validators.includesAll(['compose'])
+      const ids = actualValidators.map((validator) => validator.id)
+
+      expect(ids).toContain(expectedValidator.id)
     })
     it('Auth[roles]', async () => {
       await request(app.getHttpServer()).get(`/roles`)

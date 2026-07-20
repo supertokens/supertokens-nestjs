@@ -18,14 +18,15 @@ const common_1 = require("@nestjs/common");
 const supertokens_express_middleware_1 = require("./supertokens-express.middleware");
 const supertokens_constants_1 = require("./supertokens.constants");
 const supertokens_service_1 = require("./supertokens.service");
+const supertokens_session_verifier_1 = require("./supertokens-session.verifier");
 let SuperTokensModule = SuperTokensModule_1 = class SuperTokensModule {
     constructor(options) {
         this.options = options;
     }
     configure(consumer) {
-        if (this.options.framework !== "express")
+        if (this.options.framework !== 'express')
             return;
-        consumer.apply(supertokens_express_middleware_1.SuperTokensExpressAuthMiddleware).forRoutes("*");
+        consumer.apply(supertokens_express_middleware_1.SuperTokensExpressAuthMiddleware).forRoutes('*');
     }
     static forRoot(options) {
         const { global = true } = options;
@@ -38,7 +39,9 @@ let SuperTokensModule = SuperTokensModule_1 = class SuperTokensModule {
                     provide: supertokens_constants_1.SUPERTOKENS_MODULE_OPTIONS,
                 },
                 supertokens_service_1.SuperTokensService,
+                supertokens_session_verifier_1.SuperTokensSessionVerifier,
             ],
+            exports: [supertokens_session_verifier_1.SuperTokensSessionVerifier],
         };
     }
     static forRootAsync(options) {
@@ -47,7 +50,11 @@ let SuperTokensModule = SuperTokensModule_1 = class SuperTokensModule {
             module: SuperTokensModule_1,
             global,
             imports: options.imports || [],
-            providers: [...this.createAsyncProviders(options)],
+            providers: [
+                ...this.createAsyncProviders(options),
+                supertokens_session_verifier_1.SuperTokensSessionVerifier,
+            ],
+            exports: [supertokens_session_verifier_1.SuperTokensSessionVerifier],
         };
     }
     static createAsyncProviders(options) {
@@ -63,7 +70,7 @@ let SuperTokensModule = SuperTokensModule_1 = class SuperTokensModule {
                 },
             ];
         }
-        throw new Error("Invalid configuration options");
+        throw new Error('Invalid configuration options');
     }
     static createAsyncOptionsProvider(options) {
         if (options.useFactory) {
@@ -80,14 +87,14 @@ let SuperTokensModule = SuperTokensModule_1 = class SuperTokensModule {
                 inject: [options.useExisting],
             };
         }
-        throw new Error("Invalid configuration options");
+        throw new Error('Invalid configuration options');
     }
 };
 exports.SuperTokensModule = SuperTokensModule;
 exports.SuperTokensModule = SuperTokensModule = SuperTokensModule_1 = __decorate([
     (0, common_1.Module)({
-        providers: [supertokens_service_1.SuperTokensService],
-        exports: [],
+        providers: [supertokens_service_1.SuperTokensService, supertokens_session_verifier_1.SuperTokensSessionVerifier],
+        exports: [supertokens_session_verifier_1.SuperTokensSessionVerifier],
         controllers: [],
     }),
     __param(0, (0, common_1.Inject)(supertokens_constants_1.SUPERTOKENS_MODULE_OPTIONS)),

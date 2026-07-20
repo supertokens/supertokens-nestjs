@@ -93,6 +93,7 @@ export class AppController {}
 ### 4. Add the CORS config and the exception filter in your `bootstrap` function
 
 For Express:
+
 ```ts
 import supertokens from 'supertokens-node'
 import { SuperTokensExceptionFilter } from 'supertokens-nestjs'
@@ -112,7 +113,6 @@ async function bootstrap() {
 ```
 
 For Fastify, use `SuperTokensFastifyExceptionFilter` instead of `SuperTokensExceptionFilter`.
-
 
 ### 5. Use the provided decorators to customize the route protection logic and access the authentication state
 
@@ -135,5 +135,49 @@ class AppController {
   @Get('/user/profile')
   @PublicAccess()
   async getUserProfile() {}
+}
+```
+
+### 6. Compose session verification in custom guards
+
+Use `SuperTokensSessionVerifier` when you need a custom guard that composes SuperTokens session verification with another authentication strategy.
+
+This is useful for routes that can accept more than one credential type, such as an API key or a SuperTokens session.
+The custom guard can decide which credential to validate while still reusing the same `VerifySession` logic as `SuperTokensAuthGuard`, including roles, permissions, MFA, email verification, and custom `VerifySessionOptions`.
+
+```ts
+import {
+  CanActivate,
+  Controller,
+  ExecutionContext,
+  Get,
+  Injectable,
+  UseGuards,
+} from '@nestjs/common'
+import { SuperTokensSessionVerifier, VerifySession } from 'supertokens-nestjs'
+
+@Injectable()
+class ApiKeyOrSessionGuard implements CanActivate {
+  constructor(private readonly sessionVerifier: SuperTokensSessionVerifier) {}
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const apiKey = getApiKey(context)
+    if (apiKey) {
+      // Validate your application-specific API key here.
+      return verifyApiKey(apiKey)
+    }
+
+    return this.sessionVerifier.verifySession(context)
+  }
+}
+
+@Controller()
+class AppController {
+  @Get('/admin')
+  @VerifySession({
+    permissions: ['admin:read'],
+  })
+  @UseGuards(ApiKeyOrSessionGuard)
+  async getAdminData() {}
 }
 ```

@@ -30,6 +30,7 @@ const supertokens_node_1 = require("supertokens-node");
 const graphql_2 = require("graphql");
 const supertokens_module_1 = require("./supertokens.module");
 const supertokens_auth_guard_1 = require("./supertokens-auth.guard");
+const supertokens_session_verifier_1 = require("./supertokens-session.verifier");
 const supertokens_express_exception_filter_1 = require("./supertokens-express-exception.filter");
 const core_1 = require("@nestjs/core");
 const decorators_1 = require("./decorators");
@@ -195,9 +196,24 @@ vitest_1.vi.mock('supertokens-node/recipe/session', { spy: true });
     });
     (0, vitest_1.describe)('Decorators', async () => {
         let app;
-        let guard;
+        let sessionVerifier;
         let checkSessionDecoratorFn = vitest_1.vi.fn();
+        let checkComposedGuardFn = vitest_1.vi.fn();
         (0, vitest_1.beforeAll)(async () => {
+            let ComposedAuthGuard = class ComposedAuthGuard {
+                constructor(verifier) {
+                    this.verifier = verifier;
+                }
+                async canActivate(context) {
+                    checkComposedGuardFn(this.verifier.isPublic(context));
+                    return this.verifier.verifySession(context);
+                }
+            };
+            ComposedAuthGuard = __decorate([
+                (0, common_1.Injectable)(),
+                __param(0, (0, common_1.Inject)(supertokens_session_verifier_1.SuperTokensSessionVerifier)),
+                __metadata("design:paramtypes", [supertokens_session_verifier_1.SuperTokensSessionVerifier])
+            ], ComposedAuthGuard);
             let TestController = class TestController {
                 getPublic() { }
                 getProtected() { }
@@ -334,6 +350,22 @@ vitest_1.vi.mock('supertokens-node/recipe/session', { spy: true });
                 (0, common_1.Controller)(),
                 (0, common_1.UseGuards)(supertokens_auth_guard_1.SuperTokensAuthGuard)
             ], TestController);
+            let ComposedController = class ComposedController {
+                composed() { }
+            };
+            __decorate([
+                (0, decorators_1.VerifySession)({
+                    permissions: ['compose'],
+                }),
+                (0, common_1.UseGuards)(ComposedAuthGuard),
+                (0, common_1.Get)('/'),
+                __metadata("design:type", Function),
+                __metadata("design:paramtypes", []),
+                __metadata("design:returntype", void 0)
+            ], ComposedController.prototype, "composed", null);
+            ComposedController = __decorate([
+                (0, common_1.Controller)('/composed')
+            ], ComposedController);
             const moduleRef = await testing_1.Test.createTestingModule({
                 imports: [
                     supertokens_module_1.SuperTokensModule.forRoot({
@@ -345,10 +377,11 @@ vitest_1.vi.mock('supertokens-node/recipe/session', { spy: true });
                         recipeList: [session_1.default.init(), emailpassword_1.default.init()],
                     }),
                 ],
-                controllers: [TestController],
+                controllers: [TestController, ComposedController],
+                providers: [ComposedAuthGuard],
             }).compile();
             app = moduleRef.createNestApplication();
-            guard = moduleRef.get(supertokens_auth_guard_1.SuperTokensAuthGuard);
+            sessionVerifier = moduleRef.get(supertokens_session_verifier_1.SuperTokensSessionVerifier);
             app.useGlobalFilters(new supertokens_express_exception_filter_1.SuperTokensExpressExceptionFilter());
             await app.init();
             await app.listen(0);
@@ -360,6 +393,7 @@ vitest_1.vi.mock('supertokens-node/recipe/session', { spy: true });
         });
         (0, vitest_1.beforeEach)(async () => {
             getSession.mockClear();
+            checkComposedGuardFn.mockClear();
         });
         (0, vitest_1.it)('PublicAccess', async () => {
             await (0, supertest_1.default)(app.getHttpServer()).get(`/`).expect(200);
@@ -424,6 +458,20 @@ vitest_1.vi.mock('supertokens-node/recipe/session', { spy: true });
             (0, vitest_1.expect)(getSession).toHaveBeenCalledTimes(2);
             const [, , customVerifySessionOptions] = getSession.mock.lastCall;
             (0, vitest_1.expect)(customVerifySessionOptions.checkDatabase).toBeTruthy();
+        });
+        (0, vitest_1.it)('exposes reusable session verifier', async () => {
+            (0, vitest_1.expect)(sessionVerifier).toBeInstanceOf(supertokens_session_verifier_1.SuperTokensSessionVerifier);
+        });
+        (0, vitest_1.it)('supports composed guards that validate sessions with VerifySession metadata', async () => {
+            getSession.mockImplementationOnce(() => ({ getUserId: () => 'userId' }));
+            await (0, supertest_1.default)(app.getHttpServer()).get(`/composed/`).expect(200);
+            (0, vitest_1.expect)(checkComposedGuardFn).toHaveBeenCalledWith(false);
+            (0, vitest_1.expect)(getSession).toHaveBeenCalledTimes(1);
+            const [, , verifySessionOptions] = getSession.mock.lastCall;
+            const actualValidators = await verifySessionOptions.overrideGlobalClaimValidators([]);
+            const expectedValidator = userroles_1.default.PermissionClaim.validators.includesAll(['compose']);
+            const ids = actualValidators.map((validator) => validator.id);
+            (0, vitest_1.expect)(ids).toContain(expectedValidator.id);
         });
         (0, vitest_1.it)('Auth[roles]', async () => {
             await (0, supertest_1.default)(app.getHttpServer()).get(`/roles`);
