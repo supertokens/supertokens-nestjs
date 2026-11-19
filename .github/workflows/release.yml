@@ -2,38 +2,47 @@ name: Release
 
 on:
   workflow_dispatch:
-    inputs:
-      branch:
-        description: 'Branch to release from'
-        required: true
-        default: 'main'
-        type: string
 
 jobs:
   release:
-    # This job marks the version as a release version and creates tags.
-    # Binding this to the publish env to require approvals before run.
-    # Further jobs are follow-ups to the release and are not required to be approved once release is approved.
+    if: github.ref == 'refs/heads/main'
     environment: publish
+    permissions:
+      contents: write # Push the release tag and create a GitHub release.
+      id-token: write
 
     name: Release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.branch }}
+        uses: actions/checkout@v6
 
-      - name: Setup Node.js 20.x
-        uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
         with:
-          node-version: 20.x
+          node-version: '24'
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+
+      - name: Verify npm supports trusted publishing
+        run: |
+          npm_version=$(npm --version)
+          if ! dpkg --compare-versions "$npm_version" ge 11.5.1; then
+            echo "::error::Trusted publishing requires npm >=11.5.1; found $npm_version."
+            exit 1
+          fi
+          echo "Using npm $npm_version."
 
       - name: Install Dependencies
+        run: npm ci --include=optional
+
+      - name: Check that versioning is complete
         run: |
-          npm ci --include=optional
-          # https://github.com/npm/cli/issues/4828
-          npm install --no-save @rollup/rollup-linux-x64-gnu
+          npm run changeset -- status --output=.git/release-plan.json
+          if ! jq -e '.changesets | length == 0' .git/release-plan.json > /dev/null; then
+            echo "::error::Merge the Version Packages PR before running Release."
+            exit 1
+          fi
 
       - name: Build
         run: npm run build
@@ -41,13 +50,9 @@ jobs:
       - name: Run Tests
         run: npm test
 
-      - name: Create Release Pull Request or Publish to npm
-        id: changesets
-        uses: changesets/action@v1
+      - name: Publish to npm
+        uses: changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d # v1.9.0
         with:
           publish: npm run release
-          commit: 'chore: Version package'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-
