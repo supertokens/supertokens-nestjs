@@ -209,3 +209,7 @@ class AppController {
   async getAdminData() {}
 }
 ```
+
+## Releasing
+
+Maintainers: see [the release guide](RELEASING.md) for npm trusted publishing setup and release steps.

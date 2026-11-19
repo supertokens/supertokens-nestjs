@@ -65,6 +65,7 @@
     "@nestjs/apollo": "^13.0.4",
     "@nestjs/graphql": "^13.0.4",
     "@nestjs/platform-express": "^11.0.7",
+    "@nestjs/platform-fastify": "^11.0.6",
     "@nestjs/testing": "^11.0.7",
     "@types/supertest": "^6.0.3",
     "husky": "^9.1.7",
