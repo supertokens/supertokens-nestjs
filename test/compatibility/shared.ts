@@ -1,13 +1,9 @@
 import { Controller, Get } from '@nestjs/common'
-import {
-  PublicAccess,
-  Session,
-  SuperTokensModuleOptions,
-  VerifySession,
-} from 'supertokens-nestjs'
+import { PublicAccess, Session, VerifySession } from 'supertokens-nestjs'
 import SessionRecipe from 'supertokens-node/recipe/session'
+import type { TypeInput } from 'supertokens-node/types'
 
-export function sessionOptions() {
+export function sessionOptions(): TypeInput {
   return {
     appInfo: {
       appName: 'Compatibility fixture',
@@ -22,7 +18,7 @@ export function sessionOptions() {
       },
     },
     recipeList: [SessionRecipe.init()],
-  } satisfies Omit<SuperTokensModuleOptions, 'framework'>
+  }
 }
 
 @Controller()

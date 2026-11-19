@@ -57,6 +57,30 @@ import { SuperTokensModule } from 'supertokens-nestjs'
 export class AppModule {}
 ```
 
+#### Reuse Node SDK config with `forRootAsync`
+
+The Node SDK's `TypeInput` makes `framework` optional. Nest needs it to install
+the matching middleware or plugin. Add it explicitly when returning a shared
+Node SDK config from your factory:
+
+```ts
+import { SuperTokensModule } from 'supertokens-nestjs'
+import type { SuperTokensModuleOptions } from 'supertokens-nestjs'
+import type { TypeInput } from 'supertokens-node/types'
+
+export function registerSuperTokens(config: TypeInput) {
+  return SuperTokensModule.forRootAsync({
+    useFactory: (): SuperTokensModuleOptions => ({
+      ...config,
+      framework: 'express',
+    }),
+  })
+}
+```
+
+For Fastify, return `framework: 'fastify'` and `fastifyAdapter` using the same
+adapter instance passed to `NestFactory.create`.
+
 ### 3. Add the `SuperTokensAuthGuard` to protect your routes
 
 #### Option 1: As a global guard

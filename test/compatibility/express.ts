@@ -25,6 +25,7 @@ import {
   SuperTokensAuthGuard,
   SuperTokensExpressExceptionFilter,
   SuperTokensModule,
+  type SuperTokensModuleOptions,
 } from 'supertokens-nestjs'
 import { SessionController, sessionOptions } from './shared'
 
@@ -69,7 +70,10 @@ function extractContext(context: ExecutionContext) {
 @Module({
   imports: [
     SuperTokensModule.forRootAsync({
-      useFactory: async () => ({ ...sessionOptions(), framework: 'express' }),
+      useFactory: async (): Promise<SuperTokensModuleOptions> => ({
+        ...sessionOptions(),
+        framework: 'express',
+      }),
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       autoSchemaFile: true,

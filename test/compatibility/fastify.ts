@@ -11,6 +11,7 @@ import {
   SuperTokensAuthGuard,
   SuperTokensFastifyExceptionFilter,
   SuperTokensModule,
+  type SuperTokensModuleOptions,
 } from 'supertokens-nestjs'
 import { SessionController, sessionOptions } from './shared'
 
@@ -18,10 +19,12 @@ const adapter = new FastifyAdapter()
 
 @Module({
   imports: [
-    SuperTokensModule.forRoot({
-      ...sessionOptions(),
-      framework: 'fastify',
-      fastifyAdapter: adapter,
+    SuperTokensModule.forRootAsync({
+      useFactory: (): SuperTokensModuleOptions => ({
+        ...sessionOptions(),
+        framework: 'fastify',
+        fastifyAdapter: adapter,
+      }),
     }),
   ],
   controllers: [SessionController],
