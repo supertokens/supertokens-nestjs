@@ -16,9 +16,13 @@ That being said, the library **does not** include any additional functionality b
 
 ### 1. Install the dependencies
 
+This package supports NestJS 11 and 12 (starting at 12.0.1). Use the same major for `@nestjs/common`, `@nestjs/core`, and your HTTP adapter (`@nestjs/platform-express` or `@nestjs/platform-fastify`). Use Node.js 22.15+ on the 22.x line, or a newer supported Node.js release, for NestJS 12.
+
 ```bash
 npm install supertokens-node supertokens-nestjs
 ```
+
+For GraphQL with Apollo on Express, use the Nest GraphQL and Apollo packages that match your NestJS major: `@nestjs/graphql` and `@nestjs/apollo` 13 on NestJS 11, or 14 on NestJS 12. Apollo Driver 14 requires Apollo Server 5 and `@as-integrations/express5` for Express.
 
 ### 2. Initialize the `SuperTokensModule` inside your main application module
 
@@ -52,6 +56,30 @@ import { SuperTokensModule } from 'supertokens-nestjs'
 })
 export class AppModule {}
 ```
+
+#### Reuse Node SDK config with `forRootAsync`
+
+The Node SDK's `TypeInput` makes `framework` optional. Nest needs it to install
+the matching middleware or plugin. Add it explicitly when returning a shared
+Node SDK config from your factory:
+
+```ts
+import { SuperTokensModule } from 'supertokens-nestjs'
+import type { SuperTokensModuleOptions } from 'supertokens-nestjs'
+import type { TypeInput } from 'supertokens-node/types'
+
+export function registerSuperTokens(config: TypeInput) {
+  return SuperTokensModule.forRootAsync({
+    useFactory: (): SuperTokensModuleOptions => ({
+      ...config,
+      framework: 'express',
+    }),
+  })
+}
+```
+
+For Fastify, return `framework: 'fastify'` and `fastifyAdapter` using the same
+adapter instance passed to `NestFactory.create`.
 
 ### 3. Add the `SuperTokensAuthGuard` to protect your routes
 
