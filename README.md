@@ -16,9 +16,13 @@ That being said, the library **does not** include any additional functionality b
 
 ### 1. Install the dependencies
 
+This package supports NestJS 11 and 12 (starting at 12.0.1). Use the same major for `@nestjs/common`, `@nestjs/core`, and your HTTP adapter (`@nestjs/platform-express` or `@nestjs/platform-fastify`). Use Node.js 22.15+ on the 22.x line, or a newer supported Node.js release, for NestJS 12.
+
 ```bash
 npm install supertokens-node supertokens-nestjs
 ```
+
+For GraphQL with Apollo on Express, use the Nest GraphQL and Apollo packages that match your NestJS major: `@nestjs/graphql` and `@nestjs/apollo` 13 on NestJS 11, or 14 on NestJS 12. Apollo Driver 14 requires Apollo Server 5 and `@as-integrations/express5` for Express.
 
 ### 2. Initialize the `SuperTokensModule` inside your main application module
 

@@ -23,7 +23,7 @@ export class SuperTokensAuthGuard implements CanActivate {
     sessionVerifierOrExtractDataFromContext?:
       | SuperTokensSessionVerifier
       | ContextDataExtractor,
-    extractDataFromContext?: ContextDataExtractor,
+    @Optional() extractDataFromContext?: ContextDataExtractor,
   ) {
     if (typeof sessionVerifierOrExtractDataFromContext === 'function') {
       this.sessionVerifier = new SuperTokensSessionVerifier(

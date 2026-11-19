@@ -36,5 +36,6 @@ exports.SuperTokensAuthGuard = SuperTokensAuthGuard = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, common_1.Optional)()),
     __param(0, (0, common_1.Inject)(supertokens_session_verifier_1.SuperTokensSessionVerifier)),
+    __param(1, (0, common_1.Optional)()),
     __metadata("design:paramtypes", [Object, Function])
 ], SuperTokensAuthGuard);

@@ -10,6 +10,7 @@
     "start:fastify": "(cd ./examples/react-frontend && npm run start) & (cd ./examples/fastify-backend && npm run start) & wait",
     "start:graphql": "(cd ./examples/react-frontend && npm run start) & (cd ./examples/graphql-backend && npm run start) & wait",
     "test": "vitest run",
+    "test:compatibility": "bash test/compatibility/run.sh",
     "test:watch": "vitest",
     "changeset": "changeset",
     "version": "changeset version",
@@ -43,9 +44,10 @@
   ],
   "license": "Apache-2.0",
   "peerDependencies": {
-    "@nestjs/core": "^11.0.1",
-    "@nestjs/platform-express": "^11.0.1",
-    "@nestjs/platform-fastify": "^11.0.6",
+    "@nestjs/common": "^11.0.1 || ^12.0.1",
+    "@nestjs/core": "^11.0.1 || ^12.0.1",
+    "@nestjs/platform-express": "^11.0.1 || ^12.0.1",
+    "@nestjs/platform-fastify": "^11.0.6 || ^12.0.1",
     "supertokens-node": "^24.0.0"
   },
   "peerDependenciesMeta": {
