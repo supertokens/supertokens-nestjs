@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.0
+
+### Minor Changes
+
+- 8963f6a: Support NestJS 12 with the Express and Fastify adapters while retaining NestJS 11 support. Fix dependency injection when registering `SuperTokensAuthGuard` with `useClass` and no context extractor.
+
 ## 1.1.0
 
 ### Minor Changes
